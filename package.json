@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "multer": "^2.0.2",
     "next": "15.4.6",
