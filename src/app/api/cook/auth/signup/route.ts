@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import bcrypt from "bcryptjs";
-import Weater from "@/lib/schema/Weater";
+import Cook from "@/lib/schema/Cook";
 import jwt from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const user = await Weater.findOne({ userId });
+    const user = await Cook.findOne({ userId });
     if (user) {
       return NextResponse.json({
         success: false,
@@ -45,15 +45,14 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new Weater({
+    const newUser = new Cook({
       name,
       userId,
       password: hashedPassword,
     });
     await newUser.save();
 
-    const weater_token = jwt.sign(
+    const cook_token = jwt.sign(
       { userId: newUser._id },
       process.env.JWT_SIGN!,
       {
@@ -65,7 +64,7 @@ export async function POST(req: NextRequest) {
       success: true,
       status: 201,
       message: "User created successfully !",
-      weater_token,
+      cook_token,
     });
   } catch (error) {
     return NextResponse.json({
