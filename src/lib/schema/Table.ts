@@ -4,7 +4,8 @@ const TableSchema = new mongoose.Schema(
   {
     status: {
       type: String,
-      required: true,
+      default: "available",
+      enum: ["available", "booked"],
     },
     number: {
       type: Number,
