@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import bcrypt from "bcryptjs";
 import Weater from "@/lib/schema/Weater";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,6 +66,59 @@ export async function POST(req: NextRequest) {
       status: 201,
       message: "User created successfully !",
       weater_token,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      status: 500,
+      message: "Internal server error !",
+      error,
+    });
+  }
+}
+
+//Get weater profile...
+export async function GET(req: NextRequest) {
+  try {
+    connectDB();
+
+    const token = req.headers.get("weater_token");
+    if (!token) {
+      return NextResponse.json({
+        success: false,
+        status: 401,
+        message: "Unauthorized !",
+      });
+    }
+
+    // Verify the token and extract user id
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const userId = decoded.id;
+
+    const weater = await Weater.findById({ _id: userId }).select("-password");
+    if (!weater) {
+      return NextResponse.json({
+        success: false,
+        status: 404,
+        message: "Weater not found !",
+      });
+    }
+
+    const response = {
+      name: weater.name,
+      userId: weater.userId,
+    };
+
+    return NextResponse.json({
+      success: true,
+      status: 200,
+      message: "Weater profile fetched successfully !",
+      response,
     });
   } catch (error) {
     return NextResponse.json({

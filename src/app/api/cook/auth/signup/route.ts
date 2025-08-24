@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import bcrypt from "bcryptjs";
 import Cook from "@/lib/schema/Cook";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,6 +65,57 @@ export async function POST(req: NextRequest) {
       status: 201,
       message: "User created successfully !",
       cook_token,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      status: 500,
+      message: "Internal server error !",
+      error,
+    });
+  }
+}
+
+//Get cook profile...
+export async function GET(req: NextRequest) {
+  try {
+    connectDB();
+    const token = req.headers.get("cook_token");
+    if (!token) {
+      return NextResponse.json({
+        success: false,
+        status: 401,
+        message: "Unauthorized !",
+      });
+    }
+
+    // Verify the token and extract user id
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = decoded.id;
+    const cook = await Cook.findById({ _id: userId }).select("-password");
+    if (!cook) {
+      return NextResponse.json({
+        success: false,
+        status: 404,
+        message: "Cook not found !",
+      });
+    }
+    const response = {
+      name: cook.name,
+      userId: cook.userId,
+    };
+
+    return NextResponse.json({
+      success: true,
+      status: 200,
+      message: "Cook profile fetched successfully !",
+      response,
     });
   } catch (error) {
     return NextResponse.json({
