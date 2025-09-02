@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 }
 
 // ✅ Get food list
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     connectDB();
 

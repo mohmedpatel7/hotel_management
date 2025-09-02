@@ -25,6 +25,11 @@ const FoodListSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      default: "available",
+      enum: ["available", "unavailable"],
+    },
   },
   {
     timestamps: true,
