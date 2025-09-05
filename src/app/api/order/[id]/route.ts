@@ -65,6 +65,20 @@ export async function PUT(
     }
 
     const { status } = await req.json();
+    if (!status) {
+      return NextResponse.json({
+        message: "Status is required",
+        status: 400,
+        success: false,
+      });
+    }
+    if (status !== "pending" && status !== "completed" && status !== "cancelled") {
+      return NextResponse.json({
+        message: "Invalid status",
+        status: 400,
+        success: false,
+      });
+    }
 
     order.status = status;
     await order.save();
