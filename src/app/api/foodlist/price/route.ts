@@ -11,7 +11,7 @@ export async function PUT(
   try {
     connectDB();
 
-    const token = req.headers.get("cook_token");
+    const token = req.headers.get("manager_token");
     if (!token) {
       return NextResponse.json({
         message: "Authorization Failed !",
