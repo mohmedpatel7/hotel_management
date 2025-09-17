@@ -6,7 +6,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB(); // ✅ ensure DB connection
+    connectDB(); // ✅ ensure DB connection
 
     const token = req.headers.get("manager_token");
     if (!token) {
