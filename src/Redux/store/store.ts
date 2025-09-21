@@ -1,8 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
+import Manager from "../slices/Manager";
 
 // Create the Redux store and add the auth reducer
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    manager: Manager,
+  },
 });
 
 // Export types for use in the app
