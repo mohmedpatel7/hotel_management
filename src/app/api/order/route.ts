@@ -4,8 +4,21 @@ import Order from "@/lib/schema/Order";
 import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import Table from "@/lib/schema/Table";
+import Bill from "@/lib/schema/Bill";
 
-//Place order api
+async function generateUniqueBillId() {
+  let billId;
+  let exists = true;
+
+  while (exists) {
+    billId = "BILL-" + Math.floor(100000 + Math.random() * 900000);
+    exists = (await Bill.findOne({ billId })) !== null;
+  }
+
+  return billId;
+}
+
+// Place order API
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -43,7 +56,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ✅ Determine price based on quantity
+    // ✅ Determine price
     let price: number;
     if (quntity === "half") {
       if (!food.halfPrice) {
@@ -68,7 +81,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ✅ Check table availability
+    // ✅ Check table
     const table = await Table.findOne({ number: tableNo });
     if (!table) {
       return NextResponse.json({
@@ -77,15 +90,8 @@ export async function POST(req: NextRequest) {
         success: false,
       });
     }
-    if (table.status === "booked") {
-      return NextResponse.json({
-        message: `Table ${tableNo} is already booked!`,
-        status: 400,
-        success: false,
-      });
-    }
 
-    // ✅ Create order with calculated price
+    // ✅ Create order
     const newOrder = await Order.create({
       foodId,
       quntity,
@@ -95,17 +101,44 @@ export async function POST(req: NextRequest) {
       status: "pending",
     });
 
-    // ✅ Update table status
-    table.status = "booked";
-    await table.save();
+    // ✅ Ensure table is booked
+    if (table.status !== "booked") {
+      table.status = "booked";
+      await table.save();
+    }
+
+    // ✅ Find active bill for this table
+    let bill = await Bill.findOne({ tableId: table._id }).sort({
+      createdAt: -1,
+    }); // latest bill
+    if (!bill) {
+      // In case no bill exists (failsafe) → create one
+      const billId = await generateUniqueBillId();
+      bill = new Bill({
+        billId,
+        tableId: table._id,
+        orderIds: [],
+        totalAmount: 0,
+      });
+    }
+
+    // ✅ Attach new order to bill
+    bill.orderIds.push(newOrder._id);
+
+    // ✅ Update bill total
+    bill.totalAmount += price;
+
+    await bill.save();
 
     return NextResponse.json({
-      message: "Order placed successfully!",
+      message: "Order placed successfully and added to bill!",
       order: newOrder,
+      bill,
       success: true,
       status: 201,
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       message: "Internal Server Error",
       error,
