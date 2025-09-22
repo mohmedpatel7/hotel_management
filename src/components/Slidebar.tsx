@@ -131,19 +131,19 @@ const Sidebar = () => {
           ) : (
             <div className="space-y-2">
               <Link
-                href="/signin"
+                href="/signinLandPage"
                 className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:opacity-90 transition-opacity"
               >
                 <FaSignInAlt />
                 <span>Sign In</span>
               </Link>
-              <Link
+              {/* <Link
                 href="/signup"
                 className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl border border-orange-500 hover:bg-orange-500/10 transition-colors"
               >
                 <FaUserPlus />
                 <span>Sign Up</span>
-              </Link>
+              </Link> */}
             </div>
           )}
         </div>
