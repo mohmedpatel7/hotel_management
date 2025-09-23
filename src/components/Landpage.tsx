@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
+import { FaUserTie, FaConciergeBell, FaUtensils } from "react-icons/fa";
 
 const LandingPage: React.FC = () => {
   return (
@@ -32,19 +33,7 @@ const LandingPage: React.FC = () => {
           >
             <div className="text-center">
               <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-[#ff5500]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                <FaUserTie className="w-10 h-10 text-[#ff5500]" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
                 Manager
@@ -62,19 +51,7 @@ const LandingPage: React.FC = () => {
           >
             <div className="text-center">
               <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-[#ff5500]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 3v4a1 1 0 01-1 1H8a1 1 0 01-1-1V3m8 0H7m8 0a1 1 0 011 1v4a1 1 0 01-1 1m-8-6v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1z"
-                  />
-                </svg>
+                <FaUtensils className="w-10 h-10 text-[#ff5500]" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
                 Cook
@@ -92,19 +69,7 @@ const LandingPage: React.FC = () => {
           >
             <div className="text-center">
               <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-[#ff5500]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+                <FaConciergeBell className="w-10 h-10 text-[#ff5500]" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
                 Waiter

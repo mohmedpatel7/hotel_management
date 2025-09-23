@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FaHome,
   FaChartBar,
@@ -12,15 +12,16 @@ import {
   FaTimes,
   FaUserCircle,
   FaSignInAlt,
-  FaUserPlus,
   FaSignOutAlt,
 } from "react-icons/fa";
 
 const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const router = useRouter();
+
+  const isManger = localStorage.getItem("manager_token");
 
   const menuItems = [
     { path: "/", name: "Home", icon: <FaHome size={20} /> },
@@ -29,7 +30,6 @@ const Sidebar = () => {
       name: "Dashboard",
       icon: <FaChartBar size={20} />,
     },
-
     { path: "/menu", name: "Menu", icon: <FaUtensils size={20} /> },
     {
       path: "/analytics",
@@ -53,7 +53,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-[#1d1917]-100 shadow-lg transition-all duration-300 flex flex-col
+        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-all duration-300 flex flex-col
         ${
           isOpen ? "w-64 translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:w-64`}
@@ -78,50 +78,70 @@ const Sidebar = () => {
           {/* Navigation */}
           <nav>
             <ul className="space-y-3">
-              {menuItems.map((item) => (
-                <li key={item.path}>
-                  <Link
-                    href={item.path}
-                    className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out
-                      ${
-                        pathname === item.path
-                          ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
-                          : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-[#1d1917]-300"
-                      }`}
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                </li>
-              ))}
+              {isManger
+                ? menuItems.map((item) => (
+                    <li key={item.path}>
+                      <Link
+                        href={item.path}
+                        className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out
+                          ${
+                            pathname === item.path
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
+                          }`}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="font-medium">{item.name}</span>
+                      </Link>
+                    </li>
+                  ))
+                : menuItems
+                    .filter((item) => item.path === "/")
+                    .map((item) => (
+                      <li key={item.path}>
+                        <Link
+                          href={item.path}
+                          className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out
+                            ${
+                              pathname === item.path
+                                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                                : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
+                            }`}
+                        >
+                          <span className="text-xl">{item.icon}</span>
+                          <span className="font-medium">{item.name}</span>
+                        </Link>
+                      </li>
+                    ))}
             </ul>
           </nav>
         </div>
 
         {/* Auth Section - Fixed at bottom */}
-        <div className="mt-auto p-6 border-t border-[#1d1917]-700">
-          {isLoggedIn ? (
+        <div className="mt-auto p-6 border-t border-gray-700">
+          {isManger ? (
             <div className="relative">
               <button
                 onClick={toggleProfileMenu}
-                className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600"
+                className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
               >
                 <FaUserCircle size={24} />
                 <span>My Profile</span>
               </button>
               {showProfileMenu && (
-                <div className="absolute bottom-full left-0 w-full mb-2 bg-[#1d1917]-800 rounded-xl shadow-lg overflow-hidden">
+                <div className="absolute bottom-full left-0 w-full mb-2 bg-[#2d2927] rounded-xl shadow-lg overflow-hidden">
                   <Link
                     href="/profile"
-                    className="block w-full px-5 py-3 hover:bg-[#1d1917]-700 transition-colors"
+                    className="block w-full px-5 py-3 text-white hover:bg-orange-500 transition-colors"
                   >
                     Profile Settings
                   </Link>
                   <button
                     onClick={() => {
-                      /* Add logout logic */
+                      localStorage.removeItem("manager_token");
+                      router.push("/");
                     }}
-                    className="w-full text-left px-5 py-3 hover:bg-[#1d1917]-700 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-5 py-3 text-white hover:bg-orange-500 transition-colors flex items-center gap-2"
                   >
                     <FaSignOutAlt /> Logout
                   </button>
@@ -132,18 +152,11 @@ const Sidebar = () => {
             <div className="space-y-2">
               <Link
                 href="/signinLandPage"
-                className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:opacity-90 transition-opacity"
+                className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:opacity-90 transition-opacity"
               >
                 <FaSignInAlt />
                 <span>Sign In</span>
               </Link>
-              {/* <Link
-                href="/signup"
-                className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl border border-orange-500 hover:bg-orange-500/10 transition-colors"
-              >
-                <FaUserPlus />
-                <span>Sign Up</span>
-              </Link> */}
             </div>
           )}
         </div>
