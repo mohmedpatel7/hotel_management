@@ -13,6 +13,7 @@ import {
   FaUserCircle,
   FaSignInAlt,
   FaSignOutAlt,
+  FaUsers,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -35,6 +36,11 @@ const Sidebar = () => {
       path: "/analytics",
       name: "Analytics",
       icon: <FaClipboardList size={20} />,
+    },
+    {
+      path: "/userCreation",
+      name: "Users",
+      icon: <FaUsers size={20} />,
     },
   ];
 

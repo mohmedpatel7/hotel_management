@@ -17,7 +17,7 @@ export const connectDB = async () => {
     await mongoose.connect(MONGODB_URI);
 
     isConnected = true;
-    console.log("Connected to MongoDB");
+    console.log("Connected to db hotel management.");
   } catch (error) {
     console.error("MongoDB connection error:", error);
     throw error;

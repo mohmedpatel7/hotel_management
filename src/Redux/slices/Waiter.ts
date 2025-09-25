@@ -24,7 +24,7 @@ export const loginWaiter = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await fetch("/api/waiter/login", {
+      const response = await fetch("/api/weater/auth/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export const createWaiter = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await fetch("/api/waiter/create", {
+      const response = await fetch("/api/weater/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

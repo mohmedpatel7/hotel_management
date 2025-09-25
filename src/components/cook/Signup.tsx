@@ -2,27 +2,38 @@
 import React, { useState } from "react";
 import { FaUser, FaLock, FaUserTie, FaEye, FaEyeSlash } from "react-icons/fa";
 import { GiCook } from "react-icons/gi";
+import { signUpCook } from "@/Redux/slices/Cook";
+import { AppDispatch } from "@/Redux/store/store";
+import { useDispatch } from "react-redux";
 
 const Signup: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     userId: "",
     password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     userId: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isManager = localStorage.getItem("manager_token");
-  const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("waiter_token");
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: "", userId: "", password: "" };
+    const newErrors = {
+      name: "",
+      userId: "",
+      password: "",
+      confirmPassword: "",
+    };
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
@@ -42,6 +53,14 @@ const Signup: React.FC = () => {
       isValid = false;
     }
 
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = "Confirm Password is required";
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -50,27 +69,44 @@ const Signup: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Form submission logic here
+      setLoading(true);
+      try {
+        const { confirmPassword, ...submitData } = formData;
+        const result = await dispatch(signUpCook(submitData)).unwrap();
+        handleClear();
+      } catch (error) {
+        console.error("Sign up failed:", error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleClear = () => {
-    setFormData({ name: "", userId: "", password: "" });
-    setErrors({ name: "", userId: "", password: "" });
+    setFormData({ name: "", userId: "", password: "", confirmPassword: "" });
+    setErrors({ name: "", userId: "", password: "", confirmPassword: "" });
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const isFormFilled = formData.name && formData.userId && formData.password;
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const isFormFilled =
+    formData.name &&
+    formData.userId &&
+    formData.password &&
+    formData.confirmPassword;
 
   return (
     <>
-      {!isManager && !isCook && !isWaiter && (
+      {isManager && (
         <div className="min-h-screen bg-[#ffffff] flex flex-col md:flex-row items-center justify-center p-4">
           <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8">
             <GiCook className="text-8xl text-[#ff5500] mb-4" />
@@ -104,6 +140,7 @@ const Signup: React.FC = () => {
                     onChange={handleChange}
                     placeholder="Enter your full name"
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ff5500] text-gray-800"
+                    disabled={loading}
                   />
                 </div>
                 {errors.name && (
@@ -124,6 +161,7 @@ const Signup: React.FC = () => {
                     onChange={handleChange}
                     placeholder="Enter your user ID"
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ff5500] text-gray-800"
+                    disabled={loading}
                   />
                 </div>
                 {errors.userId && (
@@ -131,7 +169,7 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-gray-800 font-medium mb-2">
                   Password
                 </label>
@@ -144,11 +182,13 @@ const Signup: React.FC = () => {
                     onChange={handleChange}
                     placeholder="Enter your password"
                     className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ff5500] text-gray-800"
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute top-3 right-3 text-gray-600"
+                    disabled={loading}
                   >
                     {showPassword ? <FaEye /> : <FaEyeSlash />}
                   </button>
@@ -158,22 +198,54 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
+              <div className="mb-6">
+                <label className="block text-gray-800 font-medium mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute top-3 left-3 text-gray-600" />
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm your password"
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ff5500] text-gray-800"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute top-3 right-3 text-gray-600"
+                    disabled={loading}
+                  >
+                    {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={!isFormFilled}
+                  disabled={!isFormFilled || loading}
                   className={`w-full py-2 rounded-lg text-white font-semibold ${
-                    isFormFilled
+                    isFormFilled && !loading
                       ? "bg-gradient-to-r from-[#ff5500] to-[#ff5800] hover:opacity-90"
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  Sign Up
+                  {loading ? "Submitting..." : "Sign Up"}
                 </button>
                 <button
                   type="button"
                   onClick={handleClear}
                   className="w-full py-2 rounded-lg text-gray-700 font-semibold border border-gray-300 hover:bg-gray-50"
+                  disabled={loading}
                 >
                   Clear
                 </button>

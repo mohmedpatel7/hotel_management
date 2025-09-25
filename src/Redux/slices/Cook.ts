@@ -3,7 +3,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 interface CookUser {
   id: string;
   name: string;
-  email: string;
   userId?: string;
 }
 
@@ -14,12 +13,12 @@ interface CookState {
 }
 
 interface SignInData {
-  email: string;
+  userId: string;
   password: string;
 }
 
 interface SignUpData {
-  email: string;
+  userId: string;
   password: string;
   name: string;
 }
@@ -61,6 +60,7 @@ export const signUpCook = createAsyncThunk(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
         body: JSON.stringify(data),
       });
@@ -144,7 +144,7 @@ const cookSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       });
-      
+
     // Sign Up Cases
     builder
       .addCase(signUpCook.pending, (state) => {

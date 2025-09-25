@@ -1,27 +1,38 @@
 "use client";
 import React, { useState } from "react";
 import { FaUser, FaLock, FaUserTie, FaEye, FaEyeSlash } from "react-icons/fa";
+import { signUpManager } from "@/Redux/slices/Manager";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/Redux/store/store";
 
 const Signup: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     userId: "",
     password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     userId: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isManager = localStorage.getItem("manager_token");
-  const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("waiter_token");
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: "", userId: "", password: "" };
+    const newErrors = {
+      name: "",
+      userId: "",
+      password: "",
+      confirmPassword: "",
+    };
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
@@ -41,6 +52,14 @@ const Signup: React.FC = () => {
       isValid = false;
     }
 
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = "Confirm Password is required";
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -49,27 +68,44 @@ const Signup: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      // Form submission logic here
-    }
+  const handleClear = () => {
+    setFormData({ name: "", userId: "", password: "", confirmPassword: "" });
+    setErrors({ name: "", userId: "", password: "", confirmPassword: "" });
   };
 
-  const handleClear = () => {
-    setFormData({ name: "", userId: "", password: "" });
-    setErrors({ name: "", userId: "", password: "" });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setLoading(true); // Start loading
+      try {
+        const { confirmPassword, ...submitData } = formData;
+        await dispatch(signUpManager(submitData)).unwrap();
+        handleClear();
+      } catch (error) {
+        console.error("Signup failed:", error);
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const isFormFilled = formData.name && formData.userId && formData.password;
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const isFormFilled =
+    formData.name &&
+    formData.userId &&
+    formData.password &&
+    formData.confirmPassword;
 
   return (
     <>
-      {!isManager && !isCook && !isWaiter && (
+      {isManager && (
         <div className="min-h-screen bg-[#ffffff] flex flex-col md:flex-row items-center justify-center p-4">
           <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8">
             <FaUserTie className="text-8xl text-[#ff5500] mb-4" />
@@ -130,7 +166,7 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-gray-800 font-medium mb-2">
                   Password
                 </label>
@@ -157,17 +193,46 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
+              <div className="mb-6">
+                <label className="block text-gray-800 font-medium mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute top-3 left-3 text-gray-600" />
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm your password"
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ff5500] text-gray-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute top-3 right-3 text-gray-600"
+                  >
+                    {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={!isFormFilled}
+                  disabled={!isFormFilled || loading}
                   className={`w-full py-2 rounded-lg text-white font-semibold ${
-                    isFormFilled
+                    isFormFilled && !loading
                       ? "bg-gradient-to-r from-[#ff5500] to-[#ff5800] hover:opacity-90"
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  Sign Up
+                  {loading ? "Submitting..." : "Sign Up"}
                 </button>
                 <button
                   type="button"
