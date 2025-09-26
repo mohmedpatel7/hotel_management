@@ -1,7 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { GiCook } from "react-icons/gi";
+import { signInManager } from "@/Redux/slices/Manager";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/Redux/store/store";
 
 const Signin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,10 +16,18 @@ const Signin: React.FC = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const isManager = localStorage.getItem("manager_token");
-  const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("waiter_token");
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const isManager = isMounted ? localStorage.getItem("manager_token") : null;
+  const isCook = isMounted ? localStorage.getItem("cook_token") : null;
+  const isWaiter = isMounted ? localStorage.getItem("waiter_token") : null;
 
   const validateForm = () => {
     let isValid = true;
@@ -43,10 +54,20 @@ const Signin: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Form submission logic here
+    if (!validateForm()) return;
+    setIsSubmitting(true);
+    try {
+      await dispatch(
+        signInManager({ userId: formData.userId, password: formData.password })
+      ).unwrap();
+      // On success, token is saved in slice; you can redirect or show success here
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Sign in failed";
+      setErrors({ userId: "", password: message });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -59,7 +80,9 @@ const Signin: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
-  const isFormFilled = formData.userId && formData.password;
+  const isFormFilled = Boolean(formData.userId && formData.password);
+
+  if (!isMounted) return null;
 
   return (
     <>
@@ -122,6 +145,9 @@ const Signin: React.FC = () => {
                     type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute top-3 right-3 text-gray-600"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <FaEye /> : <FaEyeSlash />}
                   </button>
@@ -134,14 +160,14 @@ const Signin: React.FC = () => {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={!isFormFilled}
+                  disabled={!isFormFilled || isSubmitting}
                   className={`w-full py-2 rounded-lg text-white font-semibold ${
-                    isFormFilled
+                    isFormFilled && !isSubmitting
                       ? "bg-gradient-to-r from-[#ff5500] to-[#ff5800] hover:opacity-90"
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  Sign In
+                  {isSubmitting ? "Signing In..." : "Sign In"}
                 </button>
                 <button
                   type="button"

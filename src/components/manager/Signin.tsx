@@ -5,6 +5,7 @@ import { signInManager } from "@/Redux/slices/Manager";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
 import { useRouter } from "next/navigation";
+import { useToast } from "../Toast";
 
 const Signin: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -23,6 +24,8 @@ const Signin: React.FC = () => {
   const isManager = localStorage.getItem("manager_token");
   const isCook = localStorage.getItem("cook_token");
   const isWaiter = localStorage.getItem("waiter_token");
+
+  // const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -54,12 +57,17 @@ const Signin: React.FC = () => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        await dispatch(signInManager(formData)).unwrap();
-        // Handle successful login here
+        const response = await dispatch(signInManager(formData)).unwrap();
+        // if (response) {
+        //   showToast(response.message, "success");
+        // } else {
+        //   showToast("Signin Successfully.", "success");
+        // }
         router.push("/dashboardManager");
       } catch (error) {
-        // Handle error here
-        console.error("Login failed:", error);
+        const errorMsg =
+          (error as { message?: string })?.message ||
+          "Signin failed. Please try again.";
       } finally {
         setIsSubmitting(false);
       }

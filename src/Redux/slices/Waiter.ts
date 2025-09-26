@@ -34,8 +34,11 @@ export const loginWaiter = createAsyncThunk(
       const data = await response.json();
 
       if (!data.success) {
+        console.log(data.message);
         return rejectWithValue(data.message);
       }
+
+      localStorage.setItem("weater_token", data.weater_token);
       return data;
     } catch (error) {
       return rejectWithValue({
@@ -127,7 +130,6 @@ const waiterSlice = createSlice({
       .addCase(loginWaiter.fulfilled, (state, action) => {
         state.loading = false;
         state.waiterToken = action.payload.weater_token;
-        localStorage.setItem("weater_token", action.payload.weater_token);
       })
       .addCase(loginWaiter.rejected, (state, action) => {
         state.loading = false;

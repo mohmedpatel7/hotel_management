@@ -41,8 +41,10 @@ export const signInCook = createAsyncThunk(
         const errorData = await response.json();
         return rejectWithValue(errorData);
       }
+      const cook = await response.json();
+      localStorage.setItem("cook_token", cook.cook_token);
 
-      return response.json();
+      return cook;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);

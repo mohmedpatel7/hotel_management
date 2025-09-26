@@ -7,6 +7,9 @@ import {
   FaEyeSlash,
   FaConciergeBell,
 } from "react-icons/fa";
+import { loginWaiter } from "@/Redux/slices/Waiter";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/Redux/store/store";
 
 const Signin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,10 +21,13 @@ const Signin: React.FC = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const isManager = localStorage.getItem("manager_token");
   const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("waiter_token");
+  const isWaiter = localStorage.getItem("weater_token");
 
   const validateForm = () => {
     let isValid = true;
@@ -48,10 +54,27 @@ const Signin: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Form submission logic here
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const result = await dispatch(
+        loginWaiter({ userId: formData.userId, password: formData.password })
+      ).unwrap();
+
+      console.log(result);
+
+      // Optionally redirect or show success
+    } catch (err: unknown) {
+      // Display error message from backend
+      setErrors({
+        userId: "",
+        password: (err as { message?: string }).message || "Login failed",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,14 +162,14 @@ const Signin: React.FC = () => {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={!isFormFilled}
+                  disabled={!isFormFilled || loading}
                   className={`w-full py-2 rounded-lg text-white font-semibold ${
-                    isFormFilled
+                    isFormFilled && !loading
                       ? "bg-gradient-to-r from-[#ff5500] to-[#ff5800] hover:opacity-90"
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  Sign In
+                  {loading ? "Signing In..." : "Sign In"}
                 </button>
                 <button
                   type="button"
