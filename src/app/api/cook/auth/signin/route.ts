@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const cook_token = jwt.sign({ userId: user._id }, process.env.JWT_SIGN!, {
+    const cook_token = jwt.sign({ id: user._id, role: 'cook' }, process.env.JWT_SIGN!, {
       expiresIn: "24h",
     });
 

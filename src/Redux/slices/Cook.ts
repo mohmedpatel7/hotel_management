@@ -42,8 +42,6 @@ export const signInCook = createAsyncThunk(
         return rejectWithValue(errorData);
       }
       const cook = await response.json();
-      localStorage.setItem("cook_token", cook.cook_token);
-
       return cook;
     } catch (error) {
       if (error instanceof Error) {
@@ -139,8 +137,15 @@ const cookSlice = createSlice({
       })
       .addCase(signInCook.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
-        state.error = null;
+        if (action.payload.success) {
+          state.user = action.payload;
+          state.error = null;
+          localStorage.setItem("cook_token", action.payload.cook_token);
+        } else {
+          state.user = null;
+          state.error = action.payload.message || "Authentication failed";
+          localStorage.removeItem("cook_token");
+        }
       })
       .addCase(signInCook.rejected, (state, action) => {
         state.isLoading = false;

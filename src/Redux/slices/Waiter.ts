@@ -38,7 +38,6 @@ export const loginWaiter = createAsyncThunk(
         return rejectWithValue(data.message);
       }
 
-      localStorage.setItem("weater_token", data.weater_token);
       return data;
     } catch (error) {
       return rejectWithValue({
@@ -129,11 +128,20 @@ const waiterSlice = createSlice({
       })
       .addCase(loginWaiter.fulfilled, (state, action) => {
         state.loading = false;
-        state.waiterToken = action.payload.weater_token;
+        if (action.payload.success) {
+          state.waiterToken = action.payload.weater_token;
+          state.error = null;
+        } else {
+          state.waiterToken = null;
+          state.error = action.payload.message || "Authentication failed";
+          localStorage.removeItem("weater_token");
+        }
       })
       .addCase(loginWaiter.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        state.waiterToken = null;
+        localStorage.removeItem("weater_token");
       })
 
       // Create Waiter

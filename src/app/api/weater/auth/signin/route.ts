@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     const weater_token = jwt.sign(
-      { userId: existUser._id },
+      { 
+        id: existUser._id,
+        role: 'waiter'
+      },
       process.env.JWT_SIGN!,
       {
         expiresIn: "24h",
@@ -45,8 +48,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      status: 201,
-      message: "User created successfully !",
+      status: 200,
+      message: "Signed in successfully!",
       weater_token,
     });
   } catch (error) {

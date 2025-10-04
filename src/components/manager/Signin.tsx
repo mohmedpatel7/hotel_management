@@ -25,7 +25,7 @@ const Signin: React.FC = () => {
   const isCook = localStorage.getItem("cook_token");
   const isWaiter = localStorage.getItem("waiter_token");
 
-  // const { showToast } = useToast();
+  const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -58,16 +58,24 @@ const Signin: React.FC = () => {
       setIsSubmitting(true);
       try {
         const response = await dispatch(signInManager(formData)).unwrap();
-        // if (response) {
-        //   showToast(response.message, "success");
-        // } else {
-        //   showToast("Signin Successfully.", "success");
-        // }
-        router.push("/dashboardManager");
+        if (response.success === true && response.manager_token) {
+          showToast(response.message || "Signin Successfully.", "success");
+          router.push("/dashboardManager");
+        } else {
+          showToast(
+            response.message || "Signin failed. Please try again.",
+            "error"
+          );
+          // Clear any potentially set token
+          localStorage.removeItem("manager_token");
+        }
       } catch (error) {
         const errorMsg =
           (error as { message?: string })?.message ||
           "Signin failed. Please try again.";
+        showToast(errorMsg, "error");
+        // Clear any potentially set token
+        localStorage.removeItem("manager_token");
       } finally {
         setIsSubmitting(false);
       }

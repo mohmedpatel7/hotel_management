@@ -10,6 +10,8 @@ import {
 import { loginWaiter } from "@/Redux/slices/Waiter";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
+import { useRouter } from "next/navigation";
+import { useToast } from "../Toast";
 
 const Signin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -27,7 +29,10 @@ const Signin: React.FC = () => {
 
   const isManager = localStorage.getItem("manager_token");
   const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("weater_token");
+  const isWaiter = localStorage.getItem("waiter_token");
+
+  const router = useRouter();
+  const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -60,18 +65,27 @@ const Signin: React.FC = () => {
 
     setLoading(true);
     try {
-      const result = await dispatch(
+      const response = await dispatch(
         loginWaiter({ userId: formData.userId, password: formData.password })
       ).unwrap();
 
-      console.log(result);
-
-      // Optionally redirect or show success
+      if (response.success && response.weater_token) {
+        localStorage.setItem("weater_token", response.weater_token);
+        showToast(response.message || "Signed in successfully!", "success");
+        router.push("/dashboardWaiter");
+      } else {
+        localStorage.removeItem("weater_token");
+        showToast(response.message || "Authentication failed", "error");
+      }
     } catch (err: unknown) {
-      // Display error message from backend
+      localStorage.removeItem("weater_token");
+      const errorMsg =
+        (err as { message?: string })?.message ||
+        "Signin failed. Please try again.";
+      showToast(errorMsg, "error");
       setErrors({
         userId: "",
-        password: (err as { message?: string }).message || "Login failed",
+        password: "",
       });
     } finally {
       setLoading(false);

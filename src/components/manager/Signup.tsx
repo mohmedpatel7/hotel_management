@@ -4,6 +4,7 @@ import { FaUser, FaLock, FaUserTie, FaEye, FaEyeSlash } from "react-icons/fa";
 import { signUpManager } from "@/Redux/slices/Manager";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
+import { useToast } from "../Toast";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,6 +25,7 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isManager = localStorage.getItem("manager_token");
+  const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -79,10 +81,14 @@ const Signup: React.FC = () => {
       setLoading(true); // Start loading
       try {
         const { confirmPassword, ...submitData } = formData;
-        await dispatch(signUpManager(submitData)).unwrap();
+        const response = await dispatch(signUpManager(submitData)).unwrap();
+        showToast(response.message || "Signup Successfully.", "success");
         handleClear();
       } catch (error) {
-        console.error("Signup failed:", error);
+        const errorMsg =
+          (error as { message?: string })?.message ||
+          "Signup failed. Please try again.";
+        showToast(errorMsg, "error");
       } finally {
         setLoading(false); // Stop loading
       }

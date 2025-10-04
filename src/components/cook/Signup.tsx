@@ -5,6 +5,7 @@ import { GiCook } from "react-icons/gi";
 import { signUpCook } from "@/Redux/slices/Cook";
 import { AppDispatch } from "@/Redux/store/store";
 import { useDispatch } from "react-redux";
+import { useToast } from "../Toast";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +26,8 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isManager = localStorage.getItem("manager_token");
+
+  const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -76,9 +79,13 @@ const Signup: React.FC = () => {
       try {
         const { confirmPassword, ...submitData } = formData;
         const result = await dispatch(signUpCook(submitData)).unwrap();
+        showToast(result.message || "Signup Successfully.", "success");
         handleClear();
       } catch (error) {
-        console.error("Sign up failed:", error);
+        const errorMsg =
+          (error as { message?: string })?.message ||
+          "Sign up failed. Please try again.";
+        showToast(errorMsg, "error");
       } finally {
         setLoading(false);
       }

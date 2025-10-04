@@ -43,7 +43,6 @@ export const signInManager = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
-      localStorage.setItem("manager_token", data.manager_token);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {
@@ -81,7 +80,6 @@ export const signUpManager = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
-      localStorage.setItem("manager_token", data.manager_token);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {
@@ -149,8 +147,14 @@ const managerSlice = createSlice({
       })
       .addCase(signInManager.fulfilled, (state, action) => {
         state.loading = false;
-        state.token = action.payload.manager_token;
-        state.error = null;
+        if (action.payload.success) {
+          state.token = action.payload.manager_token;
+          state.error = null;
+          localStorage.setItem("manager_token", action.payload.manager_token);
+        } else {
+          state.token = null;
+          state.error = action.payload.message || "Authentication failed";
+        }
       })
       .addCase(signInManager.rejected, (state, action) => {
         state.loading = false;
@@ -166,6 +170,7 @@ const managerSlice = createSlice({
         state.loading = false;
         state.token = action.payload.manager_token;
         state.error = null;
+        // localStorage.setItem("manager_token", action.payload.manager_token);
       })
       .addCase(signUpManager.rejected, (state, action) => {
         state.loading = false;

@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaUsers,
 } from "react-icons/fa";
+import { useToast } from "@/components/Toast";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -22,7 +23,11 @@ const Sidebar = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
 
+  const { showToast } = useToast();
+
   const isManger = localStorage.getItem("manager_token");
+  const isCook = localStorage.getItem("cook_token");
+  const isWaiter = localStorage.getItem("weater_token");
 
   const menuItems = [
     { path: "/", name: "Home", icon: <FaHome size={20} /> },
@@ -31,7 +36,7 @@ const Sidebar = () => {
       name: "Dashboard",
       icon: <FaChartBar size={20} />,
     },
-    { path: "/menu", name: "Menu", icon: <FaUtensils size={20} /> },
+    { path: "/addFood", name: "Add Food", icon: <FaUtensils size={20} /> },
     {
       path: "/analytics",
       name: "Analytics",
@@ -125,7 +130,7 @@ const Sidebar = () => {
 
         {/* Auth Section - Fixed at bottom */}
         <div className="mt-auto p-6 border-t border-gray-700">
-          {isManger ? (
+          {isManger || isCook || isWaiter ? (
             <div className="relative">
               <button
                 onClick={toggleProfileMenu}
@@ -145,6 +150,9 @@ const Sidebar = () => {
                   <button
                     onClick={() => {
                       localStorage.removeItem("manager_token");
+                      localStorage.removeItem("cook_token");
+                      localStorage.removeItem("weater_token");
+                      showToast("Sign out Successfully.", "error");
                       router.push("/");
                     }}
                     className="w-full text-left px-5 py-3 text-white hover:bg-orange-500 transition-colors flex items-center gap-2"

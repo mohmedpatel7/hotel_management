@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     const manager_token = jwt.sign(
-      { userId: existUser._id },
+      { id: existUser._id },
       process.env.JWT_SIGN!,
       {
         expiresIn: "24h",

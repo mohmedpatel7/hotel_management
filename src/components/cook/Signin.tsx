@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { GiCook } from "react-icons/gi";
-import { signInManager } from "@/Redux/slices/Manager";
+import { signInCook } from "@/Redux/slices/Cook";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
+import { useToast } from "../Toast";
 
 const Signin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ const Signin: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
+  const { showToast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
@@ -59,13 +61,24 @@ const Signin: React.FC = () => {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await dispatch(
-        signInManager({ userId: formData.userId, password: formData.password })
+      const response = await dispatch(
+        signInCook({ userId: formData.userId, password: formData.password })
       ).unwrap();
-      // On success, token is saved in slice; you can redirect or show success here
+      
+      if (response.success === true && response.cook_token) {
+        showToast(response.message || "Signin Successfully.", "success");
+        // Redirect to cook dashboard or appropriate page
+        window.location.href = "/dashboardCook";
+      } else {
+        showToast(response.message || "Signin failed. Please try again.", "error");
+        // Clear any potentially set token
+        localStorage.removeItem("cook_token");
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Sign in failed";
-      setErrors({ userId: "", password: message });
+      showToast(message, "error");
+      // Clear any potentially set token
+      localStorage.removeItem("cook_token");
     } finally {
       setIsSubmitting(false);
     }

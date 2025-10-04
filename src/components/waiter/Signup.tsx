@@ -10,9 +10,12 @@ import {
 import { AppDispatch } from "@/Redux/store/store";
 import { useDispatch } from "react-redux";
 import { createWaiter } from "@/Redux/slices/Waiter";
+import { useRouter } from "next/navigation";
+import { useToast } from "../Toast";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -30,6 +33,8 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isManager = localStorage.getItem("manager_token");
+
+  const { showToast } = useToast();
 
   const validateForm = () => {
     let isValid = true;
@@ -80,10 +85,14 @@ const Signup: React.FC = () => {
       setIsLoading(true);
       try {
         const { confirmPassword, ...submitData } = formData;
-        await dispatch(createWaiter(submitData)).unwrap();
+        const response = await dispatch(createWaiter(submitData)).unwrap();
+        showToast(response.message || "Signup Successfully.", "success");
         handleClear();
       } catch (error) {
-        console.error("Failed to create waiter:", error);
+        const errorMsg =
+          (error as { message?: string })?.message ||
+          "Signup failed. Please try again.";
+        showToast(errorMsg, "error");
       } finally {
         setIsLoading(false);
       }
