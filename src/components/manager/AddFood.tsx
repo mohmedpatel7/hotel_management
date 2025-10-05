@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { addFoodItem } from "@/Redux/slices/Foodlist";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/Redux/store/store";
+import type { UnknownAction } from "@reduxjs/toolkit";
 
 type ValidationErrors = {
   type?: string;
@@ -36,6 +40,8 @@ export default function AddFood() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const isManager = localStorage.getItem("manager_token") !== null;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -91,12 +97,14 @@ export default function AddFood() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const dispatch = useDispatch<AppDispatch>();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
 
     const submitData = new FormData();
@@ -108,26 +116,22 @@ export default function AddFood() {
     submitData.append("foodImage", formData.file as File);
 
     try {
-      const res = await fetch("/api/manager/food", {
-        method: "POST",
-        headers: {
-          manager_token: localStorage.getItem("manager_token") || "",
-        },
-        body: submitData,
-      });
+      const resultAction = await dispatch(addFoodItem(submitData));
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Upload failed");
-
-      setErrors({});
-      clearForm();
-      setTimeout(() => {
-        router.push("/manager/menu");
-      }, 1500);
+      if (addFoodItem.fulfilled.match(resultAction)) {
+        setErrors({});
+        clearForm();
+        setTimeout(() => {
+          router.push("/dashboardManager");
+        }, 1500);
+      } else if (addFoodItem.rejected.match(resultAction)) {
+        throw new Error((resultAction.payload as string) || "Upload failed");
+      }
     } catch (error) {
       setErrors({
         ...errors,
-        foodName: error instanceof Error ? error.message : "Something went wrong",
+        foodName:
+          error instanceof Error ? error.message : "Something went wrong",
       });
     } finally {
       setLoading(false);
@@ -135,182 +139,196 @@ export default function AddFood() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ffffff] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-3xl">
-        <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-8 py-6">
-            <h2 className="text-2xl font-bold text-center text-white">
-              Add New Food Item
-            </h2>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            {/* Image Upload */}
-            <div>
-              <label className="block font-semibold text-gray-800 mb-2">Food Image *</label>
-              {errors.file && (
-                <p className="text-red-500 text-sm">
-                  {errors.file}
-                </p>
-              )}
-              {!formData.preview ? (
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 file:text-white hover:file:opacity-90"
+    isManager && (
+      <div className="min-h-screen bg-[#ffffff] flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-3xl">
+          <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-8 py-6">
+              <h2 className="text-2xl font-bold text-center text-white">
+                Add New Food Item
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              {/* Image Upload */}
+              <div>
+                <label className="block font-semibold text-gray-800 mb-2">
+                  Food Image *
+                </label>
+                {errors.file && (
+                  <p className="text-red-500 text-sm">{errors.file}</p>
+                )}
+                {!formData.preview ? (
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="w-full text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 file:text-white hover:file:opacity-90"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={formData.preview}
+                      alt="Food preview"
+                      className="w-48 h-48 object-cover rounded-2xl border-2 border-orange-200 mx-auto"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white rounded-full hover:opacity-90 text-sm font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Food Name */}
+              <div>
+                <label className="block font-semibold text-gray-800 mb-2">
+                  Food Name *
+                </label>
+                <input
+                  type="text"
+                  name="foodName"
+                  value={formData.foodName}
+                  onChange={handleChange}
+                  placeholder="e.g., Margherita Pizza"
+                  className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
+                  required
+                />
+                {errors.foodName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.foodName}</p>
+                )}
+              </div>
+
+              {/* Type & Category */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block font-semibold text-gray-800 mb-2">
+                    Type *
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
                     required
-                  />
-                </div>
-              ) : (
-                <div className="relative">
-                  <img
-                    src={formData.preview}
-                    alt="Food preview"
-                    className="w-48 h-48 object-cover rounded-2xl border-2 border-orange-200 mx-auto"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 p-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white rounded-full hover:opacity-90 text-sm font-bold"
                   >
-                    ✕
-                  </button>
+                    <option value="">Select Type</option>
+                    <option value="veg">🥗 Veg</option>
+                    <option value="non-veg">🍗 Non-Veg</option>
+                  </select>
+                  {errors.type && (
+                    <p className="text-red-500 text-sm mt-1">{errors.type}</p>
+                  )}
                 </div>
-              )}
-            </div>
-            
-            {/* Food Name */}
-            <div>
-              <label className="block font-semibold text-gray-800 mb-2">Food Name *</label>
-              <input
-                type="text"
-                name="foodName"
-                value={formData.foodName}
-                onChange={handleChange}
-                placeholder="e.g., Margherita Pizza"
-                className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
-                required
-              />
-              {errors.foodName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.foodName}
-                </p>
-              )}
-            </div>
-            
-            {/* Type & Category */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">Type *</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
-                  required
-                >
-                  <option value="">Select Type</option>
-                  <option value="veg">🥗 Veg</option>
-                  <option value="non-veg">🍗 Non-Veg</option>
-                </select>
-                {errors.type && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.type}
-                  </p>
-                )}
-              </div>
-              
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">Category *</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  <option value="rice">🍚 Rice</option>
-                  <option value="roti">🫓 Roti/Bread</option>
-                  <option value="curry">🍛 Curry</option>
-                  <option value="biryani">🍲 Biryani</option>
-                  <option value="starter">🍢 Starter</option>
-                  <option value="dessert">🍰 Dessert</option>
-                  <option value="beverage">🥤 Beverage</option>
-                  <option value="snacks">🍿 Snacks</option>
-                </select>
-                {errors.category && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.category}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            {/* Half & Full Price */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">Half Price (Optional)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-800">₹</span>
-                  <input
-                    type="number"
-                    name="halfPrice"
-                    value={formData.halfPrice}
+
+                <div>
+                  <label className="block font-semibold text-gray-800 mb-2">
+                    Category *
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
                     onChange={handleChange}
-                    placeholder="0"
-                    min={0}
-                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">Full Price *</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-800">₹</span>
-                  <input
-                    type="number"
-                    name="fullPrice"
-                    value={formData.fullPrice}
-                    onChange={handleChange}
-                    placeholder="0"
-                    min={0}
-                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
+                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
                     required
-                  />
+                  >
+                    <option value="">Select Category</option>
+                    <option value="rice">🍚 Rice</option>
+                    <option value="roti">🫓 Roti/Bread</option>
+                    <option value="curry">🍛 Curry</option>
+                    <option value="biryani">🍲 Biryani</option>
+                    <option value="starter">🍢 Starter</option>
+                    <option value="dessert">🍰 Dessert</option>
+                    <option value="beverage">🥤 Beverage</option>
+                    <option value="snacks">🍿 Snacks</option>
+                  </select>
+                  {errors.category && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.category}
+                    </p>
+                  )}
                 </div>
-                {errors.fullPrice && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.fullPrice}
-                  </p>
-                )}
               </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={clearForm}
-                className="rounded-lg border border-orange-200 bg-white text-gray-800 font-semibold py-3 px-4 hover:bg-orange-50"
-              >
-                Clear Form
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-lg bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold py-3 px-4 hover:opacity-90 disabled:opacity-70"
-              >
-                {loading ? "Adding..." : "Add Food Item"}
-              </button>
-            </div>
-          </form>
+
+              {/* Half & Full Price */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block font-semibold text-gray-800 mb-2">
+                    Half Price (Optional)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-800">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      name="halfPrice"
+                      value={formData.halfPrice}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min={0}
+                      className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-gray-800 mb-2">
+                    Full Price *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-800">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      name="fullPrice"
+                      value={formData.fullPrice}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min={0}
+                      className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
+                      required
+                    />
+                  </div>
+                  {errors.fullPrice && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.fullPrice}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  className="rounded-lg border border-orange-200 bg-white text-gray-800 font-semibold py-3 px-4 hover:bg-orange-50"
+                >
+                  Clear Form
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold py-3 px-4 hover:opacity-90 disabled:opacity-70"
+                >
+                  {loading ? "Adding..." : "Add Food Item"}
+                </button>
+              </div>
+            </form>
+          </div>
+          <p className="text-center text-xs text-gray-800 mt-6">
+            * Required fields
+          </p>
         </div>
-        <p className="text-center text-xs text-gray-800 mt-6">* Required fields</p>
       </div>
-    </div>
+    )
   );
 }

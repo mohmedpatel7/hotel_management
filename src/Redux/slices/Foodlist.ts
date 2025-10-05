@@ -10,8 +10,6 @@ interface FoodItem {
   halfPrice?: string;
   fullPrice: string;
   foodImage: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface FoodState {
@@ -34,7 +32,7 @@ export const addFoodItem = createAsyncThunk(
   "food/addFoodItem",
   async (formData: FormData, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/food", {
+      const response = await fetch("/api/foodlist/addFood", {
         method: "POST",
         headers: {
           manager_token: localStorage.getItem("manager_token") || "",
@@ -63,7 +61,7 @@ export const getFoodList = createAsyncThunk(
   "food/getFoodList",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/food", {
+      const response = await fetch("/api/foodlist/addFood", {
         method: "GET",
       });
 
@@ -88,7 +86,7 @@ export const getFoodItem = createAsyncThunk(
   "food/getFoodItem",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/food/${id}`, {
+      const response = await fetch(`/api/foodlist/addFood/${id}`, {
         method: "GET",
       });
 
@@ -116,7 +114,7 @@ export const updateFoodStatus = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await fetch(`/api/food/${id}`, {
+      const response = await fetch(`/api/foodlist/addFood/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +151,7 @@ export const updateFoodPrices = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await fetch(`/api/food/${id}`, {
+      const response = await fetch(`/api/foodlist/addFood/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
