@@ -36,7 +36,7 @@ const Sidebar = () => {
       name: "Dashboard",
       icon: <FaChartBar size={20} />,
     },
-    { path: "/addFood", name: "Menu", icon: <FaUtensils size={20} /> },
+    { path: "/menuList", name: "Menu", icon: <FaUtensils size={20} /> },
     {
       path: "/analytics",
       name: "Analytics",

@@ -139,25 +139,44 @@ export const updateFoodStatus = createAsyncThunk(
   }
 );
 
-// Async thunk for updating food prices
-export const updateFoodPrices = createAsyncThunk(
-  "food/updateFoodPrices",
+// Async thunk for updating food info (prices, type, category, foodName, image)
+export const updateFoodInfo = createAsyncThunk(
+  "food/updateFoodInfo",
   async (
     {
       id,
+      type,
+      category,
+      foodName,
       halfPrice,
       fullPrice,
-    }: { id: string; halfPrice: string; fullPrice: string },
+      foodImage,
+    }: {
+      id: string;
+      type?: string;
+      category?: string;
+      foodName?: string;
+      halfPrice?: string;
+      fullPrice?: string;
+      foodImage?: File | null;
+    },
     { rejectWithValue }
   ) => {
     try {
+      const formData = new FormData();
+      if (type) formData.append("type", type);
+      if (category) formData.append("category", category);
+      if (foodName) formData.append("foodName", foodName);
+      if (halfPrice !== undefined) formData.append("halfPrice", halfPrice);
+      if (fullPrice) formData.append("fullPrice", fullPrice);
+      if (foodImage) formData.append("foodImage", foodImage);
+
       const response = await fetch(`/api/foodlist/addFood/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           manager_token: localStorage.getItem("manager_token") || "",
         },
-        body: JSON.stringify({ halfPrice, fullPrice }),
+        body: formData,
       });
 
       const data = await response.json();
@@ -249,11 +268,11 @@ const foodSlice = createSlice({
       })
 
       // Update food prices cases
-      .addCase(updateFoodPrices.pending, (state) => {
+      .addCase(updateFoodInfo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateFoodPrices.fulfilled, (state, action) => {
+      .addCase(updateFoodInfo.fulfilled, (state, action) => {
         state.loading = false;
         const updatedFood = action.payload.updatePrice;
         const index = state.foodItems.findIndex(
@@ -266,7 +285,7 @@ const foodSlice = createSlice({
           state.selectedFood = updatedFood;
         }
       })
-      .addCase(updateFoodPrices.rejected, (state, action) => {
+      .addCase(updateFoodInfo.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

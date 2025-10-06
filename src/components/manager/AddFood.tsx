@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { addFoodItem } from "@/Redux/slices/Foodlist";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/Redux/store/store";
-import type { UnknownAction } from "@reduxjs/toolkit";
 
 type ValidationErrors = {
   type?: string;
@@ -121,9 +120,7 @@ export default function AddFood() {
       if (addFoodItem.fulfilled.match(resultAction)) {
         setErrors({});
         clearForm();
-        setTimeout(() => {
-          router.push("/dashboardManager");
-        }, 1500);
+        router.push("/menuList");
       } else if (addFoodItem.rejected.match(resultAction)) {
         throw new Error((resultAction.payload as string) || "Upload failed");
       }
@@ -239,14 +236,12 @@ export default function AddFood() {
                     required
                   >
                     <option value="">Select Category</option>
+                    <option value="soups">🍲Soups</option>
                     <option value="rice">🍚 Rice</option>
                     <option value="roti">🫓 Roti/Bread</option>
                     <option value="curry">🍛 Curry</option>
-                    <option value="biryani">🍲 Biryani</option>
                     <option value="starter">🍢 Starter</option>
                     <option value="dessert">🍰 Dessert</option>
-                    <option value="beverage">🥤 Beverage</option>
-                    <option value="snacks">🍿 Snacks</option>
                   </select>
                   {errors.category && (
                     <p className="text-red-500 text-sm mt-1">
