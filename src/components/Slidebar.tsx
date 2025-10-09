@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -25,9 +25,18 @@ const Sidebar = () => {
 
   const { showToast } = useToast();
 
-  const isManger = localStorage.getItem("manager_token");
-  const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("weater_token");
+  // Guard localStorage access to avoid SSR ReferenceError
+  const [isManger, setIsManger] = useState(false);
+  const [isCook, setIsCook] = useState(false);
+  const [isWaiter, setIsWaiter] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsManger(!!localStorage.getItem("manager_token"));
+      setIsCook(!!localStorage.getItem("cook_token"));
+      setIsWaiter(!!localStorage.getItem("weater_token"));
+    }
+  }, []);
 
   const menuItems = [
     { path: "/", name: "Home", icon: <FaHome size={20} /> },

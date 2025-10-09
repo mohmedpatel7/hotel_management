@@ -64,13 +64,17 @@ const MenuList: React.FC = () => {
   };
 
   const handleUpdate = (id: string) => {
-    router.push(`/updateFood/${id}`);
+    router.push(`/menuList/${id}`);
   };
 
-  const handleDelete = (id: string) => {
-    // Placeholder for delete logic
-    console.log("Delete item:", id);
-  };
+  // const handleDelete = async (id: string) => {
+  //   const confirmed = window.confirm(
+  //     "Are you sure you want to delete this item?"
+  //   );
+  //   if (!confirmed) return;
+  //   await dispatch(deleteFoodItem(id));
+  //   dispatch(getFoodList());
+  // };
 
   const toggleMenu = (id: string) => {
     setOpenMenuId(openMenuId === id ? null : id);
@@ -107,7 +111,10 @@ const MenuList: React.FC = () => {
     );
 
   return (
-    <section ref={menuRef} className="bg-white min-h-screen px-6 py-10 relative">
+    <section
+      ref={menuRef}
+      className="bg-white min-h-screen px-6 py-10 relative"
+    >
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 mb-10 text-left">
           Menu
@@ -156,10 +163,10 @@ const MenuList: React.FC = () => {
                             <span className="text-sm">Update</span>
                           </button>
                           <button
-                            onClick={() => {
-                              handleDelete(item.id);
-                              setOpenMenuId(null);
-                            }}
+                            // onClick={() => {
+                            //   handleDelete(item.id);
+                            //   setOpenMenuId(null);
+                            // }}
                             className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 rounded-b-lg text-red-600"
                           >
                             <FaTrash className="text-red-600" />

@@ -171,7 +171,7 @@ export const updateFoodInfo = createAsyncThunk(
       if (fullPrice) formData.append("fullPrice", fullPrice);
       if (foodImage) formData.append("foodImage", foodImage);
 
-      const response = await fetch(`/api/foodlist/addFood/${id}`, {
+      const response = await fetch(`/api/updateFooddetials/${id}`, {
         method: "PUT",
         headers: {
           manager_token: localStorage.getItem("manager_token") || "",
@@ -187,6 +187,7 @@ export const updateFoodInfo = createAsyncThunk(
 
       return data;
     } catch (error) {
+      console.log(error);
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
@@ -274,7 +275,7 @@ const foodSlice = createSlice({
       })
       .addCase(updateFoodInfo.fulfilled, (state, action) => {
         state.loading = false;
-        const updatedFood = action.payload.updatePrice;
+        const updatedFood = action.payload.updatedFood;
         const index = state.foodItems.findIndex(
           (item) => item.id === updatedFood.id
         );

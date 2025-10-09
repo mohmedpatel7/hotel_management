@@ -242,6 +242,7 @@ export default function AddFood() {
                     <option value="curry">🍛 Curry</option>
                     <option value="starter">🍢 Starter</option>
                     <option value="dessert">🍰 Dessert</option>
+                    <option value="snacks">🍹Cold Drinks</option>
                   </select>
                   {errors.category && (
                     <p className="text-red-500 text-sm mt-1">

@@ -4,7 +4,6 @@ import FoodList from "@/lib/schema/FoodList";
 import cloudinary from "@/utils/cloudinary";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-//update food info...
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -21,7 +20,6 @@ export async function PUT(
       });
     }
 
-    // ✅ Verify token
     let decoded: JwtPayload;
     try {
       decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
@@ -32,6 +30,7 @@ export async function PUT(
     const foodId = params.id;
 
     const formData = await req.formData();
+
     const type = formData.get("type") as string | null;
     const category = formData.get("category") as string | null;
     const foodName = formData.get("foodName") as string | null;
@@ -39,30 +38,20 @@ export async function PUT(
     const fullPrice = formData.get("fullPrice") as string | null;
     const file = formData.get("foodImage") as File | null;
 
-    if (!type || !category || !foodName || !fullPrice) {
-      return NextResponse.json({
-        message: "Please fill all the required fields !",
-        status: 400,
-        success: false,
-      });
-    }
-
-    interface UpdateFields {
-      type: string;
-      category: string;
-      foodName: string;
-      halfPrice?: string | null;
-      fullPrice: string;
+    const updateFields: Partial<{
+      type?: string;
+      category?: string;
+      foodName?: string;
+      halfPrice?: string;
+      fullPrice?: string;
       foodImage?: string;
-    }
+    }> = {};
 
-    const updateFields: UpdateFields = {
-      type,
-      category,
-      foodName,
-      halfPrice,
-      fullPrice,
-    };
+    if (type) updateFields.type = type;
+    if (category) updateFields.category = category;
+    if (foodName) updateFields.foodName = foodName;
+    if (halfPrice !== null) updateFields.halfPrice = halfPrice;
+    if (fullPrice) updateFields.fullPrice = fullPrice;
 
     if (file) {
       const bytes = await file.arrayBuffer();
@@ -74,6 +63,14 @@ export async function PUT(
         folder: "food_images",
       });
       updateFields.foodImage = uploadResponse.secure_url;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return NextResponse.json({
+        message: "No fields to update",
+        status: 400,
+        success: false,
+      });
     }
 
     const updatedFood = await FoodList.findByIdAndUpdate(foodId, updateFields, {
