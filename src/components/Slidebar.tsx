@@ -30,13 +30,28 @@ const Sidebar = () => {
   const [isCook, setIsCook] = useState(false);
   const [isWaiter, setIsWaiter] = useState(false);
 
+  // Listen for storage events to update auth state across tabs/windows
+  useEffect(() => {
+    const updateAuth = () => {
+      if (typeof window !== "undefined") {
+        setIsManger(!!localStorage.getItem("manager_token"));
+        setIsCook(!!localStorage.getItem("cook_token"));
+        setIsWaiter(!!localStorage.getItem("weater_token"));
+      }
+    };
+    updateAuth();
+    window.addEventListener("storage", updateAuth);
+    return () => window.removeEventListener("storage", updateAuth);
+  }, []);
+
+  // Re-check on route change to ensure fresh state after signin/signout
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsManger(!!localStorage.getItem("manager_token"));
       setIsCook(!!localStorage.getItem("cook_token"));
       setIsWaiter(!!localStorage.getItem("weater_token"));
     }
-  }, []);
+  }, [pathname]);
 
   const menuItems = [
     { path: "/", name: "Home", icon: <FaHome size={20} /> },
@@ -73,7 +88,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-all duration-300 flex flex-col
+        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-transform duration-300 ease-out flex flex-col
         ${
           isOpen ? "w-64 translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:w-64`}
@@ -103,7 +118,7 @@ const Sidebar = () => {
                     <li key={item.path}>
                       <Link
                         href={item.path}
-                        className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out
+                        className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-out
                           ${
                             pathname === item.path
                               ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
@@ -121,7 +136,7 @@ const Sidebar = () => {
                       <li key={item.path}>
                         <Link
                           href={item.path}
-                          className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out
+                          className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-out
                             ${
                               pathname === item.path
                                 ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
@@ -143,7 +158,7 @@ const Sidebar = () => {
             <div className="relative">
               <button
                 onClick={toggleProfileMenu}
-                className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
+                className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
               >
                 <FaUserCircle size={24} />
                 <span>My Profile</span>
@@ -161,6 +176,8 @@ const Sidebar = () => {
                       localStorage.removeItem("manager_token");
                       localStorage.removeItem("cook_token");
                       localStorage.removeItem("weater_token");
+                      // Dispatch storage event to trigger update in this component
+                      window.dispatchEvent(new Event("storage"));
                       showToast("Sign out Successfully.", "error");
                       router.push("/");
                     }}

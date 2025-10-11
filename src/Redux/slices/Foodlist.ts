@@ -187,7 +187,34 @@ export const updateFoodInfo = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("An unknown error occurred");
+    }
+  }
+);
+
+// Async thunk for deleting a food item
+export const deleteFoodItem = createAsyncThunk(
+  "food/deleteFoodItem",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/updateFooddetials/${id}`, {
+        method: "DELETE",
+        headers: {
+          manager_token: localStorage.getItem("manager_token") || "",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(data.message);
+      }
+
+      return data;
+    } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
@@ -268,7 +295,7 @@ const foodSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Update food prices cases
+      // Update food info cases
       .addCase(updateFoodInfo.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -287,6 +314,26 @@ const foodSlice = createSlice({
         }
       })
       .addCase(updateFoodInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Delete food item cases
+      .addCase(deleteFoodItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteFoodItem.fulfilled, (state, action) => {
+        state.loading = false;
+        const deletedFoodId = action.payload.deletedFoodId;
+        state.foodItems = state.foodItems.filter(
+          (item) => item.id !== deletedFoodId
+        );
+        if (state.selectedFood?.id === deletedFoodId) {
+          state.selectedFood = null;
+        }
+      })
+      .addCase(deleteFoodItem.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

@@ -29,6 +29,12 @@ const FoodDetailsPage = () => {
 
   const [isManager, setIsManager] = useState(false);
 
+  const [rendered, setRendered] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setRendered(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     setIsManager(!!localStorage.getItem("manager_token"));
   }, []);
@@ -126,7 +132,11 @@ const FoodDetailsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+      <div
+        className={`w-full max-w-2xl transition-all duration-700 ease-out ${
+          rendered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">

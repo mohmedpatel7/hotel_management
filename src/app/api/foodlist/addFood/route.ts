@@ -97,6 +97,7 @@ export async function GET() {
       halfPrice: item.halfPrice,
       fullPrice: item.fullPrice,
       foodImage: item.foodImage,
+      status: item.status,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     }));

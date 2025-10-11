@@ -95,3 +95,49 @@ export async function PUT(
     });
   }
 }
+
+// Delete a food item
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    connectDB();
+
+    const token = req.headers.get("manager_token");
+    if (!token) {
+      return NextResponse.json({
+        message: "Authorization Failed !",
+        success: false,
+        status: 400,
+      });
+    }
+
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const foodId = params.id;
+    const deletedFood = await FoodList.findByIdAndDelete(foodId);
+    if (!deletedFood) {
+      return NextResponse.json({ message: "Food not found!" }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      message: "Food item deleted successfully!",
+      status: 200,
+      success: true,
+      deletedFood,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      message: "Internal server error",
+      status: 500,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
