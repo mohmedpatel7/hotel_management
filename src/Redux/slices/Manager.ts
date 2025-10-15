@@ -6,6 +6,16 @@ interface ManagerState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  dashboard: {
+    monthlyRevenue: number;
+    totalWaiters: number;
+    totalCooks: number;
+    famousFoods: {
+      name: string;
+      price: string | number;
+      orders: string;
+    }[];
+  } | null;
 }
 
 const initialState: ManagerState = {
@@ -14,6 +24,7 @@ const initialState: ManagerState = {
   token: null,
   loading: false,
   error: null,
+  dashboard: null,
 };
 
 type ErrorType = {
@@ -123,6 +134,38 @@ export const getManagerProfile = createAsyncThunk(
   }
 );
 
+export const fetchManagerDashboard = createAsyncThunk(
+  "manager/dashboard",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("manager_token");
+      const response = await fetch("/api/reports/dashboard", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          manager_token: token || "",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ErrorType = {
+          message: data.message || "Failed to fetch dashboard",
+          status: response.status,
+        };
+        return rejectWithValue(error);
+      }
+      return data;
+    } catch (error) {
+      const errorMessage: ErrorType = {
+        message:
+          error instanceof Error ? error.message : "Failed to fetch dashboard",
+        status: 500,
+      };
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const managerSlice = createSlice({
   name: "manager",
   initialState,
@@ -132,6 +175,7 @@ const managerSlice = createSlice({
       state.userId = "";
       state.token = null;
       state.error = null;
+      state.dashboard = null;
       localStorage.removeItem("manager_token");
     },
     clearError: (state) => {
@@ -161,6 +205,7 @@ const managerSlice = createSlice({
         const error = action.payload as ErrorType;
         state.error = error.message;
       })
+
       // Sign Up
       .addCase(signUpManager.pending, (state) => {
         state.loading = true;
@@ -177,6 +222,7 @@ const managerSlice = createSlice({
         const error = action.payload as ErrorType;
         state.error = error.message;
       })
+
       // Get Profile
       .addCase(getManagerProfile.pending, (state) => {
         state.loading = true;
@@ -189,6 +235,27 @@ const managerSlice = createSlice({
         state.error = null;
       })
       .addCase(getManagerProfile.rejected, (state, action) => {
+        state.loading = false;
+        const error = action.payload as ErrorType;
+        state.error = error.message;
+      })
+
+      // Fetch Dashboard
+      .addCase(fetchManagerDashboard.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchManagerDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dashboard = {
+          monthlyRevenue: action.payload.monthlyRevenue,
+          totalWaiters: action.payload.totalWaiters,
+          totalCooks: action.payload.totalCooks,
+          famousFoods: action.payload.famousFoods,
+        };
+        state.error = null;
+      })
+      .addCase(fetchManagerDashboard.rejected, (state, action) => {
         state.loading = false;
         const error = action.payload as ErrorType;
         state.error = error.message;

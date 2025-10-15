@@ -5,6 +5,7 @@ import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import Table from "@/lib/schema/Table";
 import Bill from "@/lib/schema/Bill";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 async function generateUniqueBillId() {
   let billId;
@@ -22,6 +23,22 @@ async function generateUniqueBillId() {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
+
+    const token = req.headers.get("weater_token");
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization Failed !" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Verify token
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const { foodId, quntity, weaterId, tableNo } = body;

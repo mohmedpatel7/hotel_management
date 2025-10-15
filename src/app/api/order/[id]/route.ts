@@ -49,12 +49,13 @@ export async function GET(
 //update the order status...
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
 
-    const order = await Order.findById(params.id);
+    const order = await Order.findById(id);
 
     if (!order) {
       return NextResponse.json({
@@ -64,7 +65,9 @@ export async function PUT(
       });
     }
 
-    const { status } = await req.json();
+    const body = await req.json();
+    const { status } = body;
+
     if (!status) {
       return NextResponse.json({
         message: "Status is required",
@@ -72,7 +75,11 @@ export async function PUT(
         success: false,
       });
     }
-    if (status !== "pending" && status !== "completed" && status !== "cancelled") {
+    if (
+      status !== "pending" &&
+      status !== "completed" &&
+      status !== "cancelled"
+    ) {
       return NextResponse.json({
         message: "Invalid status",
         status: 400,
@@ -82,6 +89,12 @@ export async function PUT(
 
     order.status = status;
     await order.save();
+
+    return NextResponse.json({
+      message: "Order status updated successfully",
+      status: 200,
+      success: true,
+    });
   } catch (error) {
     return NextResponse.json({
       message: "Internal Server Error",
