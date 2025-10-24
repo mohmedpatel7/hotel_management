@@ -8,6 +8,7 @@ interface ManagerState {
   error: string | null;
   dashboard: {
     monthlyRevenue: number;
+    todaysOrdersCount: number; // fixed typo
     totalWaiters: number;
     totalCooks: number;
     famousFoods: {
@@ -15,6 +16,29 @@ interface ManagerState {
       price: string | number;
       orders: string;
     }[];
+  } | null;
+  ordersReport: {
+    orders: {
+      _id: string;
+      createdAt: string;
+      foodId: {
+        foodName: string;
+        status: string;
+      };
+      waiterId: {
+        // fixed typo
+        name: string;
+      };
+    }[];
+  } | null;
+  revenueReport: {
+    totalRevenue: number;
+  } | null;
+  users: {
+    // new slice property
+    waiters: { name: string; userId: string }[];
+    cooks: { name: string; userId: string }[];
+    managers: { name: string; userId: string }[];
   } | null;
 }
 
@@ -25,6 +49,9 @@ const initialState: ManagerState = {
   loading: false,
   error: null,
   dashboard: null,
+  ordersReport: null,
+  revenueReport: null,
+  users: null,
 };
 
 type ErrorType = {
@@ -166,6 +193,109 @@ export const fetchManagerDashboard = createAsyncThunk(
   }
 );
 
+export const fetchOrdersReport = createAsyncThunk(
+  "manager/ordersReport",
+  async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("manager_token");
+      const response = await fetch("/api/reports/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          manager_token: token || "",
+        },
+        body: JSON.stringify({ from, to }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ErrorType = {
+          message: data.message || "Failed to fetch orders report",
+          status: response.status,
+        };
+        return rejectWithValue(error);
+      }
+      return data;
+    } catch (error) {
+      const errorMessage: ErrorType = {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch orders report",
+        status: 500,
+      };
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const fetchRevenueReport = createAsyncThunk(
+  "manager/revenueReport",
+  async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("manager_token");
+      const response = await fetch("/api/reports/revenue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          manager_token: token || "",
+        },
+        body: JSON.stringify({ from, to }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ErrorType = {
+          message: data.message || "Failed to fetch revenue report",
+          status: response.status,
+        };
+        return rejectWithValue(error);
+      }
+      return data;
+    } catch (error) {
+      const errorMessage: ErrorType = {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch revenue report",
+        status: 500,
+      };
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// new thunk for fetching users
+export const fetchUsers = createAsyncThunk(
+  "manager/users",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("manager_token");
+      const response = await fetch("/api/manager/users", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          manager_token: token || "",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ErrorType = {
+          message: data.message || "Failed to fetch users",
+          status: response.status,
+        };
+        return rejectWithValue(error);
+      }
+      return data;
+    } catch (error) {
+      const errorMessage: ErrorType = {
+        message:
+          error instanceof Error ? error.message : "Failed to fetch users",
+        status: 500,
+      };
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const managerSlice = createSlice({
   name: "manager",
   initialState,
@@ -176,6 +306,9 @@ const managerSlice = createSlice({
       state.token = null;
       state.error = null;
       state.dashboard = null;
+      state.ordersReport = null;
+      state.revenueReport = null;
+      state.users = null;
       localStorage.removeItem("manager_token");
     },
     clearError: (state) => {
@@ -215,7 +348,6 @@ const managerSlice = createSlice({
         state.loading = false;
         state.token = action.payload.manager_token;
         state.error = null;
-        // localStorage.setItem("manager_token", action.payload.manager_token);
       })
       .addCase(signUpManager.rejected, (state, action) => {
         state.loading = false;
@@ -249,6 +381,7 @@ const managerSlice = createSlice({
         state.loading = false;
         state.dashboard = {
           monthlyRevenue: action.payload.monthlyRevenue,
+          todaysOrdersCount: action.payload.todaysOrdersCount, // fixed typo
           totalWaiters: action.payload.totalWaiters,
           totalCooks: action.payload.totalCooks,
           famousFoods: action.payload.famousFoods,
@@ -256,6 +389,58 @@ const managerSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchManagerDashboard.rejected, (state, action) => {
+        state.loading = false;
+        const error = action.payload as ErrorType;
+        state.error = error.message;
+      })
+
+      // Fetch Orders Report
+      .addCase(fetchOrdersReport.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrdersReport.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ordersReport = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchOrdersReport.rejected, (state, action) => {
+        state.loading = false;
+        const error = action.payload as ErrorType;
+        state.error = error.message;
+      })
+
+      // Fetch Revenue Report
+      .addCase(fetchRevenueReport.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRevenueReport.fulfilled, (state, action) => {
+        state.loading = false;
+        state.revenueReport = { totalRevenue: action.payload.totalRevenue };
+        state.error = null;
+      })
+      .addCase(fetchRevenueReport.rejected, (state, action) => {
+        state.loading = false;
+        const error = action.payload as ErrorType;
+        state.error = error.message;
+      })
+
+      // Fetch Users
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = {
+          waiters: action.payload.weaters, // backend uses "weaters"
+          cooks: action.payload.cooks,
+          managers: action.payload.managers,
+        };
+        state.error = null;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         const error = action.payload as ErrorType;
         state.error = error.message;

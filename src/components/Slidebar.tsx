@@ -62,7 +62,7 @@ const Sidebar = () => {
     },
     { path: "/menuList", name: "Menu", icon: <FaUtensils size={20} /> },
     {
-      path: "/analytics",
+      path: "/reportsManager",
       name: "Analytics",
       icon: <FaClipboardList size={20} />,
     },

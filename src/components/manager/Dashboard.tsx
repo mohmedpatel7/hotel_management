@@ -7,6 +7,7 @@ import {
   FaUserTie,
   FaUtensils,
   FaHamburger,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { fetchManagerDashboard } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,17 +41,40 @@ const Dashboard = () => {
     );
   if (error)
     return (
-      <div className="p-6 text-red-600">
-        Error:{" "}
-        {typeof error === "string"
-          ? error
-          : (error as { message?: string })?.message || "Unknown error"}
-      </div>
+      <section className="bg-white min-h-screen px-6 py-10 flex items-center justify-center">
+        <div className="bg-red-50 border border-red-200 rounded-lg shadow-md p-6 max-w-md w-full text-center">
+          <div className="text-red-500 mb-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-red-700 mb-2">
+            Something went wrong
+          </h3>
+          <p className="text-red-600">
+            {typeof error === "string"
+              ? error
+              : (error as { message?: string })?.message || "Unknown error"}
+          </p>
+        </div>
+      </section>
     );
   if (!dashboard) return null;
 
   const {
     monthlyRevenue = 0,
+    todaysOrdersCoun = 0,
     totalWaiters = 0,
     totalCooks = 0,
     famousFoods = [],
@@ -58,6 +82,7 @@ const Dashboard = () => {
 
   return (
     <div className="bg-[#ffffff] min-h-screen w-full p-6">
+      {/* Header Card */}
       <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 rounded-lg shadow-md p-6 mt-9">
         <h2 className="text-2xl font-bold mb-4 text-white">
           Hotel Mumtaz Chicken
@@ -72,46 +97,73 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div className="bg-[#ffffff] rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">
-                Monthly Revenue
-              </h3>
-              <p className="text-2xl font-bold text-gray-800 mt-2">
-                ₹{monthlyRevenue.toLocaleString("en-IN")}
-              </p>
+      {/* Revenue Section */}
+      <div className="mt-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Revenue</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Monthly Revenue
+                </h3>
+                <p className="text-2xl font-bold text-gray-800 mt-2">
+                  ₹{monthlyRevenue.toLocaleString("en-IN")}
+                </p>
+              </div>
+              <FaMoneyBillWave className="text-orange-400 text-3xl" />
             </div>
-            <FaMoneyBillWave className="text-orange-400 text-3xl" />
           </div>
-        </div>
 
-        <div className="bg-[#ffffff] rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">Total Waiters</h3>
-              <p className="text-2xl font-bold text-gray-800 mt-2">
-                {totalWaiters}
-              </p>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Daily Orders
+                </h3>
+                <p className="text-2xl font-bold text-gray-800 mt-2">
+                  {todaysOrdersCoun.toLocaleString("en-IN")}
+                </p>
+              </div>
+              <FaShoppingCart className="text-orange-400 text-3xl" />
             </div>
-            <FaUserTie className="text-orange-400 text-3xl" />
-          </div>
-        </div>
-
-        <div className="bg-[#ffffff] rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">Total Cooks</h3>
-              <p className="text-2xl font-bold text-gray-800 mt-2">
-                {totalCooks}
-              </p>
-            </div>
-            <FaUtensils className="text-orange-400 text-3xl" />
           </div>
         </div>
       </div>
 
+      {/* Staff Section */}
+      <div className="mt-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Staff</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Total Waiters
+                </h3>
+                <p className="text-2xl font-bold text-gray-800 mt-2">
+                  {totalWaiters}
+                </p>
+              </div>
+              <FaUserTie className="text-orange-400 text-3xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Total Cooks</h3>
+                <p className="text-2xl font-bold text-gray-800 mt-2">
+                  {totalCooks}
+                </p>
+              </div>
+              <FaUtensils className="text-orange-400 text-3xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Famous Foods */}
       <div className="bg-white rounded-lg shadow-md p-6 mt-6">
         <div className="flex items-center gap-2 mb-4">
           <FaHamburger className="text-orange-500 text-xl" />

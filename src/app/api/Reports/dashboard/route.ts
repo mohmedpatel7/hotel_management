@@ -14,6 +14,21 @@ export async function GET() {
     const lastMonth = new Date(today);
     lastMonth.setDate(today.getDate() - 30);
 
+    // Today's orders count
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+    const todaysOrdersCount = await Order.countDocuments({
+      createdAt: { $gte: startOfDay, $lt: endOfDay },
+    });
+
     // Monthly Revenue: sum of completed orders in last 30 days
     const orders = await Order.find({
       status: "completed",
@@ -59,6 +74,7 @@ export async function GET() {
 
     return NextResponse.json({
       monthlyRevenue,
+      todaysOrdersCount,
       totalWaiters,
       totalCooks,
       famousFoods,

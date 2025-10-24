@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch orders with populated food and waiter details
     const orders = await Order.find(dateQuery)
-      .populate("foodId", "name price")
+      .populate("foodId", "name price createdAt")
       .populate({
         path: "weaterId",
         model: Weater,
