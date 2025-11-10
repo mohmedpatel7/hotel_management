@@ -74,7 +74,7 @@ const Dashboard = () => {
 
   const {
     monthlyRevenue = 0,
-    todaysOrdersCoun = 0,
+    todaysOrdersCount = 0,
     totalWaiters = 0,
     totalCooks = 0,
     famousFoods = [],
@@ -122,7 +122,7 @@ const Dashboard = () => {
                   Daily Orders
                 </h3>
                 <p className="text-2xl font-bold text-gray-800 mt-2">
-                  {todaysOrdersCoun.toLocaleString("en-IN")}
+                  {todaysOrdersCount.toLocaleString("en-IN")}
                 </p>
               </div>
               <FaShoppingCart className="text-orange-400 text-3xl" />

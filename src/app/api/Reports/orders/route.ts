@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Order from "@/lib/schema/Order";
+import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
@@ -16,12 +17,12 @@ import jwt, { JwtPayload } from "jsonwebtoken";
  *       _id: string,
  *       createdAt: string,
  *       foodId: {
- *         foodName: string,
- *         status: string
+ *         foodName: string
  *       },
  *       weaterId: {
  *         name: string
  *       },
+ *       status: string,
  *       ...other order fields
  *     },
  *     ...
@@ -80,12 +81,13 @@ export async function POST(req: NextRequest) {
     })
       .populate({
         path: "foodId",
-        select: "foodName status",
+        select: "foodName",
       })
       .populate({
         path: "weaterId",
         select: "name",
       })
+      .select("_id createdAt status foodId weaterId price tableNo")
       .lean();
 
     return NextResponse.json({ orders }, { status: 200 });

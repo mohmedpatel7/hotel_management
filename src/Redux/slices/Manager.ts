@@ -8,7 +8,7 @@ interface ManagerState {
   error: string | null;
   dashboard: {
     monthlyRevenue: number;
-    todaysOrdersCount: number; // fixed typo
+    todaysOrdersCount: number;
     totalWaiters: number;
     totalCooks: number;
     famousFoods: {
@@ -24,9 +24,10 @@ interface ManagerState {
       foodId: {
         foodName: string;
         status: string;
+        price: number;
+        tableNo: number;
       };
       waiterId: {
-        // fixed typo
         name: string;
       };
     }[];
@@ -214,6 +215,7 @@ export const fetchOrdersReport = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
+      console.log(data);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {
@@ -269,7 +271,7 @@ export const fetchUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("manager_token");
-      const response = await fetch("/api/manager/users", {
+      const response = await fetch("/api/reports/users", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
