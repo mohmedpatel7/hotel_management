@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import Manager from "../slices/Manager";
 import Foodlist from "../slices/Foodlist";
+import Table from "../slices/Table";
 
 // Create the Redux store and add the auth reducer
 export const store = configureStore({
   reducer: {
     manager: Manager,
     foodlist: Foodlist,
+    table: Table,
   },
 });
 

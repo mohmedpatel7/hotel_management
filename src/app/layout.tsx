@@ -34,7 +34,7 @@ export default function RootLayout({
           <ToastProvider>
             <div className="flex">
               <Sidebar />
-              <div className="flex-1 ml-0 md:ml-64 transition-all duration-300">
+              <div className="flex-1 ml-0 md:ml-60 transition-all duration-300">
                 {children}
               </div>
             </div>

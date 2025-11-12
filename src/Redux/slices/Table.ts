@@ -57,7 +57,7 @@ export const fetchTables = createAsyncThunk<
   { rejectValue: { message: string } }
 >("table/fetchTables", async (_, { rejectWithValue }) => {
   try {
-    const response = await fetch(`${BASE_URL}/tables`, {
+    const response = await fetch(`${BASE_URL}/createTable`, {
       method: "GET",
       headers: {
         manager_token: localStorage.getItem("manager_token") || "",
