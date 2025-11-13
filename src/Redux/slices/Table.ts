@@ -88,7 +88,7 @@ export const updateTableStatus = createAsyncThunk<
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        manager_token: localStorage.getItem("manager_token") || "",
+        weater_token: localStorage.getItem("weater_token") || "",
       },
       body: JSON.stringify({ status }),
     });

@@ -23,7 +23,7 @@ export async function PUT(
 ) {
   try {
     connectDB();
-    const token = req.headers.get("manager_token");
+    const token = req.headers.get("weater_token");
     if (!token) {
       return NextResponse.json({
         message: "Authorization Failed !",

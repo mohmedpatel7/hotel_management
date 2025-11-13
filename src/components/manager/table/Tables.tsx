@@ -1,10 +1,11 @@
 "use client";
-import { fetchTables } from "@/Redux/slices/Table";
+import { fetchTables, createTable } from "@/Redux/slices/Table";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FiTable } from "react-icons/fi";
 import { FaPlusCircle } from "react-icons/fa";
+import { useToast } from "@/components/Toast";
 
 export default function Tables() {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +17,8 @@ export default function Tables() {
   const [tableNumber, setTableNumber] = useState("");
 
   const isManager = localStorage.getItem("manager_token") !== null;
+
+  const { showToast } = useToast();
 
   // Fetch tables on mount
   useEffect(() => {
@@ -31,9 +34,26 @@ export default function Tables() {
     setTableNumber("");
   };
 
-  const handleCreateTable = () => {
-    // Add functionality to create table here
-    handleCloseModal();
+  const handleCreateTable = async () => {
+    if (!tableNumber.trim()) {
+      showToast("Table number is required", "error");
+      return;
+    }
+
+    const tableData = {
+      status: "available",
+      number: parseInt(tableNumber, 10),
+    };
+    try {
+      await dispatch(createTable(tableData)).unwrap();
+      showToast("Table created successfully", "success");
+      handleCloseModal();
+    } catch (error) {
+      showToast(
+        (error as { message?: string })?.message || "Failed to create table",
+        "error"
+      );
+    }
   };
 
   return (
@@ -99,11 +119,11 @@ export default function Tables() {
 
           {!loading && !error && tables.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {tables.slice(0, 3).map((table) => (
+              {tables.map((table) => (
                 <div
                   key={table.id}
                   className={`p-6 rounded-xl shadow-lg border transition-colors ${
-                    table.status === "occupied"
+                    table.status === "occupied" || table.status === "booked"
                       ? "bg-red-100 border-red-300"
                       : "bg-green-100 border-green-300"
                   }`}
@@ -112,11 +132,54 @@ export default function Tables() {
                     <h3 className="text-xl font-bold text-gray-800">
                       Table {table.number}
                     </h3>
-                    <FiTable className="h-8 w-8 text-orange-500" />
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          // Toggle dropdown for this table
+                          const dropdown = document.getElementById(
+                            `menu-${table.id}`
+                          );
+                          if (dropdown) {
+                            dropdown.classList.toggle("hidden");
+                          }
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.cursor = "pointer")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.cursor = "default")
+                        }
+                        className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
+                        aria-label="Table options"
+                      >
+                        <FiTable className="h-8 w-8 text-orange-500" />
+                      </button>
+
+                      {/* Dropdown menu */}
+                      <div
+                        id={`menu-${table.id}`}
+                        className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-10"
+                      >
+                        <button
+                          onClick={() => {
+                            // Handle delete action
+                            console.log(`Delete table ${table.number}`);
+                            // Add your delete logic here
+                            const dropdown = document.getElementById(
+                              `menu-${table.id}`
+                            );
+                            if (dropdown) dropdown.classList.add("hidden");
+                          }}
+                          className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-t-lg"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <p
                     className={`text-lg font-semibold capitalize ${
-                      table.status === "occupied"
+                      table.status === "booked"
                         ? "text-red-600"
                         : "text-green-600"
                     }`}
