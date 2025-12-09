@@ -1,9 +1,9 @@
 "use client";
-import { fetchTables, createTable } from "@/Redux/slices/Table";
+import { fetchTables, createTable, deleteTable } from "@/Redux/slices/Table";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiTable } from "react-icons/fi";
+import { FiTable, FiTrash2 } from "react-icons/fi";
 import { FaPlusCircle } from "react-icons/fa";
 import { useToast } from "@/components/Toast";
 
@@ -15,6 +15,8 @@ export default function Tables() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const isManager = localStorage.getItem("manager_token") !== null;
 
@@ -53,6 +55,32 @@ export default function Tables() {
         (error as { message?: string })?.message || "Failed to create table",
         "error"
       );
+    }
+  };
+
+  const openDeleteModal = (tableId: string) => {
+    setSelectedTable(tableId);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setSelectedTable(null);
+  };
+
+  const handleDeleteTable = async () => {
+    if (!selectedTable) return;
+    try {
+      await dispatch(deleteTable(selectedTable)).unwrap();
+      showToast("Table deleted successfully", "success");
+      dispatch(fetchTables());
+    } catch (error) {
+      showToast(
+        (error as { message?: string })?.message || "Failed to delete table",
+        "error"
+      );
+    } finally {
+      closeDeleteModal();
     }
   };
 
@@ -132,50 +160,15 @@ export default function Tables() {
                     <h3 className="text-xl font-bold text-gray-800">
                       Table {table.number}
                     </h3>
-                    <div className="relative">
-                      <button
-                        onClick={() => {
-                          // Toggle dropdown for this table
-                          const dropdown = document.getElementById(
-                            `menu-${table.id}`
-                          );
-                          if (dropdown) {
-                            dropdown.classList.toggle("hidden");
-                          }
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.cursor = "pointer")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.cursor = "default")
-                        }
-                        className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
-                        aria-label="Table options"
-                      >
-                        <FiTable className="h-8 w-8 text-orange-500" />
-                      </button>
-
-                      {/* Dropdown menu */}
-                      <div
-                        id={`menu-${table.id}`}
-                        className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-10"
-                      >
-                        <button
-                          onClick={() => {
-                            // Handle delete action
-                            console.log(`Delete table ${table.number}`);
-                            // Add your delete logic here
-                            const dropdown = document.getElementById(
-                              `menu-${table.id}`
-                            );
-                            if (dropdown) dropdown.classList.add("hidden");
-                          }}
-                          className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-t-lg"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
+                    <button
+                      onClick={() => {
+                        openDeleteModal(table?._id || "");
+                      }}
+                      className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
+                      aria-label="Delete table"
+                    >
+                      <FiTrash2 className="h-6 w-6 text-red-500" />
+                    </button>
                   </div>
                   <p
                     className={`text-lg font-semibold capitalize ${
@@ -231,6 +224,34 @@ export default function Tables() {
                   className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for delete confirmation */}
+        {deleteModalOpen && (
+          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+              <h3 className="text-xl font-bold text-red-600 mb-4">
+                Confirm Delete
+              </h3>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this table?
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTable}
+                  className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Delete
                 </button>
               </div>
             </div>

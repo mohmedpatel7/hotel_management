@@ -113,7 +113,7 @@ export const deleteTable = createAsyncThunk<
   { rejectValue: { message: string } }
 >("table/deleteTable", async (id, { rejectWithValue }) => {
   try {
-    const response = await fetch(`${BASE_URL}/delete/${id}`, {
+    const response = await fetch(`${BASE_URL}/createTable/${id}`, {
       method: "DELETE",
       headers: {
         manager_token: localStorage.getItem("manager_token") || "",
