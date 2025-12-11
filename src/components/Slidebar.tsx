@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaUsers,
   FaTable,
+  FaFileInvoiceDollar,
 } from "react-icons/fa";
 import { useToast } from "@/components/Toast";
 
@@ -71,6 +72,11 @@ const Sidebar = () => {
       path: "/tablesDashboard",
       name: "Table",
       icon: <FaTable size={18} />,
+    },
+    {
+      path: "/bills",
+      name: "Bills",
+      icon: <FaFileInvoiceDollar size={18} />,
     },
     {
       path: "/userCreation",
