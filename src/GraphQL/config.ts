@@ -52,11 +52,11 @@ export const typeDefs = `
 `;
 
 // Import Mongoose models so we can talk to MongoDB
-import Table from "../lib/schema/Table";
-import Order from "../lib/schema/Order";
-import Bill from "../lib/schema/Bill";
-import Food from "../lib/schema/FoodList";
-import Weater from "../lib/schema/Weater";
+import Table from "@/lib/schema/Table";
+import Order from "@/lib/schema/Order";
+import Bill from "@/lib/schema/Bill";
+import Food from "@/lib/schema/FoodList";
+import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import { GraphQLScalarType, Kind } from "graphql";
 

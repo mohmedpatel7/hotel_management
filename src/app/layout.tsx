@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Provider from "@/Redux/Provider/Provider";
+import ClientProviders from "@/lib/clientProvider/ClientProviders";
 import Sidebar from "@/components/Slidebar";
-import { ToastProvider } from "@/components/Toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,16 +29,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Provider>
-          <ToastProvider>
-            <div className="flex">
-              <Sidebar />
-              <div className="flex-1 ml-0 md:ml-60 transition-all duration-300">
-                {children}
-              </div>
+        <ClientProviders>
+          <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-0 md:ml-60 transition-all duration-300">
+              {children}
             </div>
-          </ToastProvider>
-        </Provider>
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

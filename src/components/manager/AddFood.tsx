@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { addFoodItem } from "@/Redux/slices/Foodlist";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/Redux/store/store";
+import { useToast } from "@/components/Toast";
 
 type ValidationErrors = {
   type?: string;
@@ -40,7 +41,13 @@ export default function AddFood() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
 
+  const { showToast } = useToast();
+
   const isManager = localStorage.getItem("manager_token") !== null;
+  if (!isManager) {
+    router.push("/");
+    showToast("Please Signin!", "error");
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

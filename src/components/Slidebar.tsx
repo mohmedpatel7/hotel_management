@@ -74,7 +74,7 @@ const Sidebar = () => {
       icon: <FaTable size={18} />,
     },
     {
-      path: "/bills",
+      path: "/billDashboard",
       name: "Bills",
       icon: <FaFileInvoiceDollar size={18} />,
     },

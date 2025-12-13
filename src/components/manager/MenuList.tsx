@@ -95,18 +95,16 @@ const MenuList: React.FC = () => {
 
   if (loading)
     return (
-      <section className="bg-white min-h-screen px-6 py-10 relative">
-        <div className="text-center p-8 text-gray-700 animate-pulse">
-          Loading menu...
+      <section
+        className="min-h-screen px-6 py-10"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700">Loading tables...</p>
+          </div>
         </div>
-        <button
-          type="button"
-          aria-label="Add new menu item"
-          onClick={handleAddFood}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center animate-bounce"
-        >
-          <FaPlusCircle className="w-8 h-8" />
-        </button>
       </section>
     );
 
