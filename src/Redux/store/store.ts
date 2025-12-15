@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import Manager from "../slices/Manager";
 import Foodlist from "../slices/Foodlist";
 import Table from "../slices/Table";
+import Bill from "../slices/Bill";
 
 // Create the Redux store and add the auth reducer
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     manager: Manager,
     foodlist: Foodlist,
     table: Table,
+    bills: Bill,
   },
 });
 

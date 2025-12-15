@@ -13,7 +13,7 @@ export const updateBillStatus = createAsyncThunk(
         return rejectWithValue("Authorization Failed !");
       }
 
-      const response = await fetch("/api/bills/status", {
+      const response = await fetch("/api/graphql/status", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

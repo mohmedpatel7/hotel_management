@@ -2,8 +2,11 @@
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useToast } from "@/components/Toast";
+import { useDispatch, useSelector } from "react-redux";
+import { updateBillStatus, resetBillState } from "@/Redux/slices/Bill";
+import { AppDispatch, RootState } from "@/Redux/store/store";
 
 const GET_BILLS = gql`
   query getdata {
@@ -43,15 +46,101 @@ const GET_BILLS = gql`
 `;
 
 export default function BillDashboard() {
-  const { data, loading, error } = useQuery(GET_BILLS);
+  const { data, loading, error, refetch } = useQuery(GET_BILLS);
   const router = useRouter();
   const { showToast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    loading: isUpdating,
+    error: updateError,
+    message: updateMessage,
+  } = useSelector((state: RootState) => state.bills);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<{
+    _id: string;
+    billId: string;
+    tableId: string;
+    table: { _id: string; status: string; number: number };
+    orderIds: string[];
+    orders: Array<{
+      _id: string;
+      foodId: string;
+      food: { category: string; type: string; foodName: string };
+      quntity: number;
+      price: number;
+      weaterId: string;
+      weater: { name: string; userId: string };
+      tableNo: number;
+      status: string;
+    }>;
+    totalAmount: number;
+    status: "pending" | "completed" | "cancelled";
+    createdAt: string;
+  } | null>(null);
+  const [newStatus, setNewStatus] = useState<
+    "pending" | "completed" | "cancelled"
+  >("pending");
 
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | "pending" | "completed" | "cancelled"
   >("all");
 
-  const isManager = localStorage.getItem("manager_token");
+  const openModal = useCallback(
+    (bill: {
+      _id: string;
+      billId: string;
+      tableId: string;
+      table: { _id: string; status: string; number: number };
+      orderIds: string[];
+      orders: Array<{
+        _id: string;
+        foodId: string;
+        food: { category: string; type: string; foodName: string };
+        quntity: number;
+        price: number;
+        weaterId: string;
+        weater: { name: string; userId: string };
+        tableNo: number;
+        status: string;
+      }>;
+      totalAmount: number;
+      status: "pending" | "completed" | "cancelled";
+      createdAt: string;
+    }) => {
+      setSelectedBill(bill);
+      setNewStatus(bill.status);
+      setIsModalOpen(true);
+    },
+    []
+  );
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedBill(null);
+    dispatch(resetBillState());
+  }, [dispatch]);
+
+  const handleUpdate = useCallback(() => {
+    if (selectedBill) {
+      dispatch(
+        updateBillStatus({ billId: selectedBill.billId, status: newStatus })
+      );
+    }
+  }, [dispatch, selectedBill, newStatus]);
+
+  useEffect(() => {
+    if (updateMessage) {
+      showToast(updateMessage, "success");
+      refetch();
+      closeModal();
+    }
+    if (updateError) {
+      showToast(updateError, "error");
+    }
+  }, [updateMessage, updateError, showToast, refetch, closeModal]);
+
+  const isManager = localStorage.getItem("manager_token") || "";
   if (!isManager) {
     router.push("/");
     showToast("Please Signin!", "error");
@@ -193,16 +282,6 @@ export default function BillDashboard() {
                         </div>
 
                         <div className="p-6">
-                          <div className="mb-3">
-                            <span
-                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
-                                bill.status
-                              )}`}
-                            >
-                              {bill.status}
-                            </span>
-                          </div>
-
                           <div className="mb-4">
                             <h3 className="text-gray-800 font-semibold mb-2">
                               Orders
@@ -234,7 +313,16 @@ export default function BillDashboard() {
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Created: {new Date(bill.createdAt).toLocaleString()}
+                            Date: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+
+                          <div className="mt-6 text-right">
+                            <button
+                              onClick={() => openModal(bill)}
+                              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Update Status
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -268,16 +356,6 @@ export default function BillDashboard() {
                         </div>
 
                         <div className="p-6">
-                          <div className="mb-3">
-                            <span
-                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
-                                bill.status
-                              )}`}
-                            >
-                              {bill.status}
-                            </span>
-                          </div>
-
                           <div className="mb-4">
                             <h3 className="text-gray-800 font-semibold mb-2">
                               Orders
@@ -309,7 +387,16 @@ export default function BillDashboard() {
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Created: {new Date(bill.createdAt).toLocaleString()}
+                            Date: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+
+                          <div className="mt-6 text-right">
+                            <button
+                              onClick={() => openModal(bill)}
+                              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Update Status
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -343,16 +430,6 @@ export default function BillDashboard() {
                         </div>
 
                         <div className="p-6">
-                          <div className="mb-3">
-                            <span
-                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
-                                bill.status
-                              )}`}
-                            >
-                              {bill.status}
-                            </span>
-                          </div>
-
                           <div className="mb-4">
                             <h3 className="text-gray-800 font-semibold mb-2">
                               Orders
@@ -384,7 +461,16 @@ export default function BillDashboard() {
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Created: {new Date(bill.createdAt).toLocaleString()}
+                            Date: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+
+                          <div className="mt-6 text-right">
+                            <button
+                              onClick={() => openModal(bill)}
+                              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Update Status
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -395,6 +481,69 @@ export default function BillDashboard() {
           </div>
         )}
       </div>
+
+      {isModalOpen && selectedBill && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 m-4">
+            <h2 className="text-2xl font-bold text-orange-600 mb-6">
+              Update Bill Status
+            </h2>
+            <div className="mb-6">
+              <p className="text-lg font-semibold text-gray-700">
+                Bill ID: {selectedBill.billId}
+              </p>
+              <p className="text-sm text-gray-500">
+                Table: {selectedBill.table.number}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-600 font-medium">Select new status:</p>
+              <div className="flex gap-4">
+                {(["pending", "completed", "cancelled"] as const).map(
+                  (status) => (
+                    <button
+                      key={status}
+                      onClick={() => setNewStatus(status)}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold border transition-all duration-200 ${
+                        newStatus === status
+                          ? "text-white shadow-lg transform scale-105 " +
+                            (status === "pending"
+                              ? "bg-yellow-500 border-yellow-600"
+                              : status === "completed"
+                              ? "bg-green-500 border-green-600"
+                              : "bg-red-500 border-red-600")
+                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={isUpdating}
+                className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+              >
+                {isUpdating && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                )}
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

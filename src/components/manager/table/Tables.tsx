@@ -18,6 +18,10 @@ export default function Tables() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "available" | "booked"
+  >("all");
+
   const isManager = localStorage.getItem("manager_token") !== null;
 
   const { showToast } = useToast();
@@ -84,6 +88,11 @@ export default function Tables() {
     }
   };
 
+  const filteredTables = tables.filter((table) => {
+    if (statusFilter === "all") return true;
+    return table.status === statusFilter;
+  });
+
   return (
     isManager && (
       <section
@@ -92,6 +101,23 @@ export default function Tables() {
       >
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold mb-8 text-orange-600">Tables</h2>
+
+          {/* Filter Menu */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {(["all", "available", "booked"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  statusFilter === s
+                    ? "bg-orange-500 text-white border-orange-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
@@ -145,9 +171,9 @@ export default function Tables() {
             </div>
           )}
 
-          {!loading && !error && tables.length > 0 && (
+          {!loading && !error && filteredTables.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {tables.map((table) => (
+              {filteredTables.map((table) => (
                 <div
                   key={table.id}
                   className={`p-6 rounded-xl shadow-lg border transition-colors ${
