@@ -36,17 +36,20 @@ const GET_BILLS = gql`
         status
       }
       totalAmount
+      status
       createdAt
     }
   }
 `;
 
 export default function BillDashboard() {
-  // const isManager = localStorage.getItem("manger_token");
   const { data, loading, error } = useQuery(GET_BILLS);
-
   const router = useRouter();
   const { showToast } = useToast();
+
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | "pending" | "completed" | "cancelled"
+  >("all");
 
   const isManager = localStorage.getItem("manager_token");
   if (!isManager) {
@@ -54,29 +57,344 @@ export default function BillDashboard() {
     showToast("Please Signin!", "error");
   }
 
-  console.log("[BillDashboard] query state:", { data, loading, error });
-
-  if (data) {
-    console.log("[BillDashboard] data.getBill:", data);
-    console.log("[BillDashboard] first bill:", data);
+  if (loading) {
+    return (
+      <section
+        className="min-h-screen px-6 py-10"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700">Loading Bills...</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
-  if (loading) {
+  if (error) {
+    return (
+      <section className="bg-white min-h-screen px-6 py-10 flex items-center justify-center">
+        <div className="bg-red-50 border border-red-200 rounded-lg shadow-md p-6 max-w-md w-full text-center">
+          <div className="text-red-500 mb-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-red-700 mb-2">
+            Something went wrong
+          </h3>
+          <p className="text-red-600">
+            {typeof error === "string"
+              ? error
+              : error?.message || "Unknown error"}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const bills = data?.getBill || [];
+
+  // Helper to pick status tag color
+  const statusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  // Filter state
+
+  // Group bills by status
+  const pendingBills = bills.filter((b) => b.status === "pending");
+  const completedBills = bills.filter((b) => b.status === "completed");
+  const cancelledBills = bills.filter((b) => b.status === "cancelled");
+
+  // Decide which bills to render based on filter
+  const visibleBills = {
+    all: bills,
+    pending: pendingBills,
+    completed: completedBills,
+    cancelled: cancelledBills,
+  }[statusFilter];
+
+  return (
     <section
       className="min-h-screen px-6 py-10"
       style={{ backgroundColor: "#ffffff" }}
     >
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading Bills...</p>
-        </div>
-      </div>
-    </section>;
-  }
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-orange-600 mb-6 text-left">
+          Bill Dashboard
+        </h1>
 
-  if (error) {
-    console.error("[BillDashboard] query error:", error);
-    return <div>Error: {error.message}</div>;
-  }
+        {/* Filter Menu */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(["all", "pending", "completed", "cancelled"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                statusFilter === s
+                  ? "bg-orange-500 text-white border-orange-500"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {bills.length === 0 ? (
+          <p className="text-center text-gray-600">No bills found.</p>
+        ) : (
+          <div className="space-y-10">
+            {/* Pending Bills Section */}
+            {(statusFilter === "all" || statusFilter === "pending") &&
+              pendingBills.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Pending Bills ({pendingBills.length})
+                  </h2>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {pendingBills.map((bill) => (
+                      <div
+                        key={bill._id}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                      >
+                        <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-6 py-4">
+                          <div className="flex justify-between items-center text-white">
+                            <span className="text-lg font-semibold">
+                              {bill.billId}
+                            </span>
+                            <span className="text-sm bg-orange-700 px-2 py-1 rounded-full">
+                              Table {bill.table.number}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-6">
+                          <div className="mb-3">
+                            <span
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
+                                bill.status
+                              )}`}
+                            >
+                              {bill.status}
+                            </span>
+                          </div>
+
+                          <div className="mb-4">
+                            <h3 className="text-gray-800 font-semibold mb-2">
+                              Orders
+                            </h3>
+                            <ul className="space-y-2">
+                              {bill.orders.map((order) => (
+                                <li
+                                  key={order._id}
+                                  className="flex justify-between text-sm text-gray-700"
+                                >
+                                  <span>
+                                    {order.food.foodName} ({order.quntity})
+                                  </span>
+                                  <span className="font-medium">
+                                    ₹{order.price}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="flex justify-between items-center border-t pt-4">
+                            <span className="text-gray-800 font-semibold">
+                              Total Amount
+                            </span>
+                            <span className="text-xl font-bold text-gray-900">
+                              ₹{bill.totalAmount}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 text-xs text-gray-500">
+                            Created: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Completed Bills Section */}
+            {(statusFilter === "all" || statusFilter === "completed") &&
+              completedBills.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Completed Bills ({completedBills.length})
+                  </h2>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {completedBills.map((bill) => (
+                      <div
+                        key={bill._id}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                      >
+                        <div className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-6 py-4">
+                          <div className="flex justify-between items-center text-white">
+                            <span className="text-lg font-semibold">
+                              {bill.billId}
+                            </span>
+                            <span className="text-sm bg-green-700 px-2 py-1 rounded-full">
+                              Table {bill.table.number}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-6">
+                          <div className="mb-3">
+                            <span
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
+                                bill.status
+                              )}`}
+                            >
+                              {bill.status}
+                            </span>
+                          </div>
+
+                          <div className="mb-4">
+                            <h3 className="text-gray-800 font-semibold mb-2">
+                              Orders
+                            </h3>
+                            <ul className="space-y-2">
+                              {bill.orders.map((order) => (
+                                <li
+                                  key={order._id}
+                                  className="flex justify-between text-sm text-gray-700"
+                                >
+                                  <span>
+                                    {order.food.foodName} ({order.quntity})
+                                  </span>
+                                  <span className="font-medium">
+                                    ₹{order.price}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="flex justify-between items-center border-t pt-4">
+                            <span className="text-gray-800 font-semibold">
+                              Total Amount
+                            </span>
+                            <span className="text-xl font-bold text-gray-900">
+                              ₹{bill.totalAmount}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 text-xs text-gray-500">
+                            Created: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Cancelled Bills Section */}
+            {(statusFilter === "all" || statusFilter === "cancelled") &&
+              cancelledBills.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Cancelled Bills ({cancelledBills.length})
+                  </h2>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {cancelledBills.map((bill) => (
+                      <div
+                        key={bill._id}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                      >
+                        <div className="bg-gradient-to-r from-red-400 via-red-500 to-red-600 px-6 py-4">
+                          <div className="flex justify-between items-center text-white">
+                            <span className="text-lg font-semibold">
+                              {bill.billId}
+                            </span>
+                            <span className="text-sm bg-red-700 px-2 py-1 rounded-full">
+                              Table {bill.table.number}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-6">
+                          <div className="mb-3">
+                            <span
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusColor(
+                                bill.status
+                              )}`}
+                            >
+                              {bill.status}
+                            </span>
+                          </div>
+
+                          <div className="mb-4">
+                            <h3 className="text-gray-800 font-semibold mb-2">
+                              Orders
+                            </h3>
+                            <ul className="space-y-2">
+                              {bill.orders.map((order) => (
+                                <li
+                                  key={order._id}
+                                  className="flex justify-between text-sm text-gray-700"
+                                >
+                                  <span>
+                                    {order.food.foodName} ({order.quntity})
+                                  </span>
+                                  <span className="font-medium">
+                                    ₹{order.price}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="flex justify-between items-center border-t pt-4">
+                            <span className="text-gray-800 font-semibold">
+                              Total Amount
+                            </span>
+                            <span className="text-xl font-bold text-gray-900">
+                              ₹{bill.totalAmount}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 text-xs text-gray-500">
+                            Created: {new Date(bill.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }

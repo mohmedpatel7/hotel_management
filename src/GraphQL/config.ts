@@ -39,6 +39,7 @@ export const typeDefs = `
         orderIds:[String!]! 
         orders:[Order!]!  
         totalAmount:Int!   
+        status:String!    
         createdAt:Date!  
     }
 
@@ -213,6 +214,7 @@ export const resolvers = {
       status
     }
     totalAmount
+    status
     createdAt
   }
 }

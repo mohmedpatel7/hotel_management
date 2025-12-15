@@ -9,6 +9,11 @@ const BillSchema = new mongoose.Schema({
   },
   orderIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   totalAmount: { type: Number, default: 0 }, // Initially 0
+  status: {
+    type: String,
+    default: "pending",
+    enum: ["pending", "completed", "cancelled"],
+  }, // pending, completed, cancelled
   createdAt: { type: Date, default: Date.now },
 });
 
