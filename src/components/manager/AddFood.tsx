@@ -309,20 +309,22 @@ export default function AddFood() {
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="mt-8 flex justify-end gap-4">
                 <button
-                  type="button"
                   onClick={clearForm}
-                  className="rounded-lg border border-orange-200 bg-white text-gray-800 font-semibold py-3 px-4 hover:bg-orange-50"
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Clear Form
+                  Cancel
                 </button>
                 <button
-                  type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold py-3 px-4 hover:opacity-90 disabled:opacity-70"
+                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
                 >
-                  {loading ? "Adding..." : "Add Food Item"}
+                  {loading && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  )}
+                  Add
                 </button>
               </div>
             </form>

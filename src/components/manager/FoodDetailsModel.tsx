@@ -267,20 +267,22 @@ const FoodDetailsPage = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-4 pt-4">
+
+          <div className="mt-8 flex justify-end gap-4">
             <button
-              type="button"
               onClick={() => router.back()}
-              className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition"
+              className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold hover:opacity-90 transition disabled:opacity-50"
+              className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
             >
-              {loading ? "Updating..." : "Update"}
+              {loading && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              )}
+              Update
             </button>
           </div>
         </form>

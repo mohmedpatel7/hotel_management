@@ -102,7 +102,7 @@ const MenuList: React.FC = () => {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-700">Loading tables...</p>
+            <p className="text-gray-700">Loading Menu...</p>
           </div>
         </div>
       </section>
