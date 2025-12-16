@@ -238,18 +238,23 @@ export default function Tables() {
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-800  focus:ring-orange-500"
                 placeholder="Enter table number"
               />
-              <div className="flex justify-end gap-4 mt-6">
+
+              <div className="mt-8 flex justify-end gap-4">
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateTable}
-                  className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white"
+                  disabled={loading}
+                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
                 >
-                  Create
+                  {loading && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  )}
+                  Add
                 </button>
               </div>
             </div>
@@ -266,17 +271,22 @@ export default function Tables() {
               <p className="text-gray-700 mb-6">
                 Are you sure you want to delete this table?
               </p>
-              <div className="flex justify-end gap-4">
+
+              <div className="mt-8 flex justify-end gap-4">
                 <button
                   onClick={closeDeleteModal}
-                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteTable}
-                  className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+                  disabled={loading}
+                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
                 >
+                  {loading && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  )}
                   Delete
                 </button>
               </div>

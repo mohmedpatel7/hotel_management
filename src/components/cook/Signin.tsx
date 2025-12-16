@@ -64,13 +64,16 @@ const Signin: React.FC = () => {
       const response = await dispatch(
         signInCook({ userId: formData.userId, password: formData.password })
       ).unwrap();
-      
+
       if (response.success === true && response.cook_token) {
         showToast(response.message || "Signin Successfully.", "success");
         // Redirect to cook dashboard or appropriate page
         window.location.href = "/dashboardCook";
       } else {
-        showToast(response.message || "Signin failed. Please try again.", "error");
+        showToast(
+          response.message || "Signin failed. Please try again.",
+          "error"
+        );
         // Clear any potentially set token
         localStorage.removeItem("cook_token");
       }
@@ -170,24 +173,21 @@ const Signin: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex gap-4">
+              <div className="mt-8 flex justify-end gap-4">
                 <button
-                  type="submit"
-                  disabled={!isFormFilled || isSubmitting}
-                  className={`w-full py-2 rounded-lg text-white font-semibold ${
-                    isFormFilled && !isSubmitting
-                      ? "bg-gradient-to-r from-[#ff5500] to-[#ff5800] hover:opacity-90"
-                      : "bg-gray-300 cursor-not-allowed"
-                  }`}
-                >
-                  {isSubmitting ? "Signing In..." : "Sign In"}
-                </button>
-                <button
-                  type="button"
                   onClick={handleClear}
-                  className="w-full py-2 rounded-lg text-gray-700 font-semibold border border-gray-300 hover:bg-gray-50"
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Clear
+                </button>
+                <button
+                  disabled={isSubmitting || !isFormFilled}
+                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                >
+                  {isSubmitting && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  )}
+                  Sign In
                 </button>
               </div>
             </form>
