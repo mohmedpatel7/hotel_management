@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import Order from "@/lib/schema/Order";
 
 //get the perticular order details...
 export async function GET(
-  req: NextRequest,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -48,7 +48,7 @@ export async function GET(
 
 //update the order status...
 export async function PUT(
-  req: NextRequest,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
