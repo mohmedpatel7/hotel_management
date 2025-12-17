@@ -19,7 +19,7 @@ async function generateUniqueBillId() {
 //To update table status...
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     connectDB();
@@ -59,7 +59,8 @@ export async function PUT(
       });
     }
 
-    const table = await Table.findByIdAndUpdate(params.id, { status: status });
+    const { id } = await params;
+    const table = await Table.findByIdAndUpdate(id, { status: status });
 
     if (!table) {
       return NextResponse.json({
@@ -105,7 +106,7 @@ export async function PUT(
 //To delete table...
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     connectDB();
@@ -125,7 +126,8 @@ export async function DELETE(
         success: false,
       });
     }
-    const table = await Table.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const table = await Table.findByIdAndDelete(id);
     if (!table) {
       return NextResponse.json({
         message: "Table not found !",
