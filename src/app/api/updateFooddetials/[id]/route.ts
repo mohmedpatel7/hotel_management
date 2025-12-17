@@ -6,7 +6,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -27,7 +27,8 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const foodId = params.id;
+    const { id } = await params;
+    const foodId = id;
 
     const formData = await req.formData();
 
@@ -99,7 +100,7 @@ export async function PUT(
 // Delete a food item
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     connectDB();
@@ -120,7 +121,8 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const foodId = params.id;
+    const { id } = await params;
+    const foodId = id;
     const deletedFood = await FoodList.findByIdAndDelete(foodId);
     if (!deletedFood) {
       return NextResponse.json({ message: "Food not found!" }, { status: 400 });
