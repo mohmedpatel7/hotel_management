@@ -4,7 +4,6 @@ stages:
 github_push:
   stage: sync
   image: alpine:latest
-  manual: true
   before_script:
     - apk add --no-cache git
   script:
@@ -17,5 +16,8 @@ github_push:
     # 3. Push only the current branch changes
     # This ensures only the code that triggered the pipeline is sent
     - git push mirror HEAD:main --force
+
+  when: manual
+  allow_failure: true
   only:
     - main
