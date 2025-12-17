@@ -86,6 +86,12 @@ export default function BillDashboard() {
     "all" | "pending" | "completed" | "cancelled"
   >("all");
 
+  const [limits, setLimits] = useState({
+    pending: 10,
+    completed: 10,
+    cancelled: 10,
+  });
+
   const openModal = useCallback(
     (bill: {
       _id: string;
@@ -144,6 +150,7 @@ export default function BillDashboard() {
   if (!isManager) {
     router.push("/");
     showToast("Please Signin!", "error");
+    return null;
   }
 
   if (loading) {
@@ -218,14 +225,6 @@ export default function BillDashboard() {
   const completedBills = bills.filter((b) => b.status === "completed");
   const cancelledBills = bills.filter((b) => b.status === "cancelled");
 
-  // Decide which bills to render based on filter
-  const visibleBills = {
-    all: bills,
-    pending: pendingBills,
-    completed: completedBills,
-    cancelled: cancelledBills,
-  }[statusFilter];
-
   return (
     <section
       className="min-h-screen px-6 py-10"
@@ -253,7 +252,7 @@ export default function BillDashboard() {
           ))}
         </div>
 
-        {bills.length === 0 ? (
+        {isManager && bills.length === 0 ? (
           <p className="text-center text-gray-600">No bills found.</p>
         ) : (
           <div className="space-y-10">
@@ -265,7 +264,7 @@ export default function BillDashboard() {
                     Pending Bills ({pendingBills.length})
                   </h2>
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {pendingBills.map((bill) => (
+                    {pendingBills.slice(0, limits.pending).map((bill) => (
                       <div
                         key={bill._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
@@ -328,18 +327,35 @@ export default function BillDashboard() {
                       </div>
                     ))}
                   </div>
+
+                  {isManager && pendingBills.length > limits.pending && (
+                    <div className="flex justify-center mt-4">
+                      <button
+                        onClick={() =>
+                          setLimits((prev) => ({
+                            ...prev,
+                            pending: prev.pending + 10,
+                          }))
+                        }
+                        className="px-6 py-2 bg-orange-500 text-white rounded-full shadow hover:bg-orange-600 transition"
+                      >
+                        Load More
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
             {/* Completed Bills Section */}
-            {(statusFilter === "all" || statusFilter === "completed") &&
+            {isManager &&
+              (statusFilter === "all" || statusFilter === "completed") &&
               completedBills.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">
                     Completed Bills ({completedBills.length})
                   </h2>
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {completedBills.map((bill) => (
+                    {completedBills.slice(0, limits.completed).map((bill) => (
                       <div
                         key={bill._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
@@ -402,18 +418,35 @@ export default function BillDashboard() {
                       </div>
                     ))}
                   </div>
+
+                  {isManager && completedBills.length > limits.completed && (
+                    <div className="flex justify-center mt-4">
+                      <button
+                        onClick={() =>
+                          setLimits((prev) => ({
+                            ...prev,
+                            completed: prev.completed + 10,
+                          }))
+                        }
+                        className="px-6 py-2 bg-orange-500 text-white rounded-full shadow hover:bg-orange-600 transition"
+                      >
+                        Load More
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
             {/* Cancelled Bills Section */}
-            {(statusFilter === "all" || statusFilter === "cancelled") &&
+            {isManager &&
+              (statusFilter === "all" || statusFilter === "cancelled") &&
               cancelledBills.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">
                     Cancelled Bills ({cancelledBills.length})
                   </h2>
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {cancelledBills.map((bill) => (
+                    {cancelledBills.slice(0, limits.cancelled).map((bill) => (
                       <div
                         key={bill._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
@@ -476,6 +509,22 @@ export default function BillDashboard() {
                       </div>
                     ))}
                   </div>
+
+                  {isManager && cancelledBills.length > limits.cancelled && (
+                    <div className="flex justify-center mt-4">
+                      <button
+                        onClick={() =>
+                          setLimits((prev) => ({
+                            ...prev,
+                            cancelled: prev.cancelled + 10,
+                          }))
+                        }
+                        className="px-6 py-2 bg-orange-500 text-white rounded-full shadow hover:bg-orange-600 transition"
+                      >
+                        Load More
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
           </div>
