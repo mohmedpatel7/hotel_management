@@ -10,12 +10,12 @@ import {
 import { AppDispatch } from "@/Redux/store/store";
 import { useDispatch } from "react-redux";
 import { createWaiter } from "@/Redux/slices/Waiter";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useToast } from "../Toast";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
+  // const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",

@@ -1,7 +1,7 @@
 "use client";
 import { fetchRevenueReport } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FiInbox } from "react-icons/fi";
 

@@ -1,7 +1,7 @@
 "use client";
 import { fetchOrdersReport } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FiInbox } from "react-icons/fi";
 import jsPDF from "jspdf";
@@ -27,11 +27,6 @@ export default function OrdersReports() {
     return formatDateLocal(yesterday);
   });
   const [to, setTo] = useState<string>(() => formatDateLocal(new Date()));
-
-  // // Fetch on mount and whenever from/to change
-  // useEffect(() => {
-
-  // }, [from, to, dispatch]);
 
   // Frontend calculations
   const totalOrders = ordersReport?.orders.length ?? 0;
