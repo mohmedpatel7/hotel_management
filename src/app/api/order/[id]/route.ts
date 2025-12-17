@@ -4,13 +4,13 @@ import Order from "@/lib/schema/Order";
 
 //get the perticular order details...
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectDB();
 
-    const { id } = await params;
+    const { id } = params;
     const order = await Order.findById(id);
 
     if (!order) {
