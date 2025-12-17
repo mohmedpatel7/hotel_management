@@ -7,8 +7,8 @@ github_push:
   before_script:
     - apk add --no-cache git
   script:
-    - if [ -z "$GITHUB_TOKEN" ]; then echo "GITHUB_TOKEN is not set"; exit 1; fi
-    - if [ -z "$GITHUB_REPO" ]; then echo "GITHUB_REPO is not set"; exit 1; fi
+    - if [ -z "$GITHUB_TOKEN" ]; then echo "GITHUB_TOKEN is not set"; exit 1; else echo "GITHUB_TOKEN is set successfully"; fi
+    - if [ -z "$GITHUB_REPO" ]; then echo "GITHUB_REPO is not set"; exit 1; else echo "GITHUB_REPO is set successfully"; fi
 
     # 1. Construct the authenticated URL
     - GH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git"
