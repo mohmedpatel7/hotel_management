@@ -2,19 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import Order from "@/lib/schema/Order";
 
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
-
 // get the particular order details
-export async function GET(_req: Request, context: RouteContext) {
+export async function GET(_req: Request, { params }: any) {
   try {
     await connectDB();
 
-    const { id } = context.params;
-    const order = await Order.findById(id);
+    const order = await Order.findById(params.id);
 
     if (!order) {
       return NextResponse.json({
