@@ -4,7 +4,6 @@ stages:
 github_push:
   stage: sync
   image: alpine:latest
-  manual: true
   before_script:
     - apk add --no-cache git
   script:
