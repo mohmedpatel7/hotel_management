@@ -16,9 +16,8 @@ github_push:
     # 2. Add GitHub as a remote named 'mirror'
     - git remote add mirror "$GH_URL" || git remote set-url mirror "$GH_URL"
 
-    # 3. Push only the current branch changes
-    # This ensures only the code that triggered the pipeline is sent
-    - git push mirror HEAD:main --force
+    # 3. Push using FULL REFNAME to fix the error
+    - git push mirror HEAD:refs/heads/main --force
 
   when: manual
   only:
