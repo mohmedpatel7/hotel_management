@@ -6,12 +6,12 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 //Get details of perticular food..
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     connectDB();
 
-    const foodId = params.id;
+    const { id: foodId } = await params;
     const food = await FoodList.findById({ _id: foodId });
     if (!food) {
       return NextResponse.json({ message: "Food not found!" }, { status: 404 });
@@ -31,7 +31,7 @@ export async function GET(
 //update food status..
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     connectDB();
@@ -52,7 +52,7 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const foodId = params.id;
+    const { id: foodId } = await params;
 
     const { status } = await req.json();
     if (!status) {
