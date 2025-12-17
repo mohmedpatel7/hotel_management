@@ -3,11 +3,14 @@ import { connectDB } from "@/lib/db/dbConnection";
 import Order from "@/lib/schema/Order";
 
 // get the particular order details
-export async function GET(_req: Request, { params }: any) {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await connectDB();
-
-    const order = await Order.findById(params.id);
+    const { id } = await params;
+    const order = await Order.findById(id);
 
     if (!order) {
       return NextResponse.json({
