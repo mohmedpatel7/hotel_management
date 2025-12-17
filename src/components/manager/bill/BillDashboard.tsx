@@ -202,7 +202,7 @@ export default function BillDashboard() {
     );
   }
 
-  const bills = data?.getBill || [];
+  const bills = (data as { getBill?: (typeof selectedBill)[] })?.getBill || [];
 
   // Helper to pick status tag color
   const statusColor = (status: string) => {
@@ -221,9 +221,9 @@ export default function BillDashboard() {
   // Filter state
 
   // Group bills by status
-  const pendingBills = bills.filter((b) => b.status === "pending");
-  const completedBills = bills.filter((b) => b.status === "completed");
-  const cancelledBills = bills.filter((b) => b.status === "cancelled");
+  const pendingBills = bills.filter((b) => b?.status === "pending");
+  const completedBills = bills.filter((b) => b?.status === "completed");
+  const cancelledBills = bills.filter((b) => b?.status === "cancelled");
 
   return (
     <section
@@ -266,16 +266,16 @@ export default function BillDashboard() {
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {pendingBills.slice(0, limits.pending).map((bill) => (
                       <div
-                        key={bill._id}
+                        key={bill?._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
                       >
                         <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-6 py-4">
                           <div className="flex justify-between items-center text-white">
                             <span className="text-lg font-semibold">
-                              {bill.billId}
+                              {bill?.billId}
                             </span>
                             <span className="text-sm bg-orange-700 px-2 py-1 rounded-full">
-                              Table {bill.table.number}
+                              Table {bill?.table.number}
                             </span>
                           </div>
                         </div>
@@ -286,7 +286,7 @@ export default function BillDashboard() {
                               Orders
                             </h3>
                             <ul className="space-y-2">
-                              {bill.orders.map((order) => (
+                              {bill?.orders.map((order) => (
                                 <li
                                   key={order._id}
                                   className="flex justify-between text-sm text-gray-700"
@@ -307,17 +307,20 @@ export default function BillDashboard() {
                               Total Amount
                             </span>
                             <span className="text-xl font-bold text-gray-900">
-                              ₹{bill.totalAmount}
+                              ₹{bill?.totalAmount}
                             </span>
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Date: {new Date(bill.createdAt).toLocaleString()}
+                            Date:{" "}
+                            {bill?.createdAt
+                              ? new Date(bill.createdAt).toLocaleString()
+                              : "N/A"}
                           </div>
 
                           <div className="mt-6 text-right">
                             <button
-                              onClick={() => openModal(bill)}
+                              onClick={() => bill && openModal(bill)}
                               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                               Update Status
@@ -357,16 +360,16 @@ export default function BillDashboard() {
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {completedBills.slice(0, limits.completed).map((bill) => (
                       <div
-                        key={bill._id}
+                        key={bill?._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
                       >
                         <div className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-6 py-4">
                           <div className="flex justify-between items-center text-white">
                             <span className="text-lg font-semibold">
-                              {bill.billId}
+                              {bill?.billId}
                             </span>
                             <span className="text-sm bg-green-700 px-2 py-1 rounded-full">
-                              Table {bill.table.number}
+                              Table {bill?.table.number}
                             </span>
                           </div>
                         </div>
@@ -377,7 +380,7 @@ export default function BillDashboard() {
                               Orders
                             </h3>
                             <ul className="space-y-2">
-                              {bill.orders.map((order) => (
+                              {bill?.orders.map((order) => (
                                 <li
                                   key={order._id}
                                   className="flex justify-between text-sm text-gray-700"
@@ -398,17 +401,20 @@ export default function BillDashboard() {
                               Total Amount
                             </span>
                             <span className="text-xl font-bold text-gray-900">
-                              ₹{bill.totalAmount}
+                              ₹{bill?.totalAmount}
                             </span>
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Date: {new Date(bill.createdAt).toLocaleString()}
+                            Date:{" "}
+                            {bill?.createdAt
+                              ? new Date(bill.createdAt).toLocaleString()
+                              : "N/A"}
                           </div>
 
                           <div className="mt-6 text-right">
                             <button
-                              onClick={() => openModal(bill)}
+                              onClick={() => bill && openModal(bill)}
                               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                               Update Status
@@ -448,16 +454,16 @@ export default function BillDashboard() {
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {cancelledBills.slice(0, limits.cancelled).map((bill) => (
                       <div
-                        key={bill._id}
+                        key={bill?._id}
                         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
                       >
                         <div className="bg-gradient-to-r from-red-400 via-red-500 to-red-600 px-6 py-4">
                           <div className="flex justify-between items-center text-white">
                             <span className="text-lg font-semibold">
-                              {bill.billId}
+                              {bill?.billId}
                             </span>
                             <span className="text-sm bg-red-700 px-2 py-1 rounded-full">
-                              Table {bill.table.number}
+                              Table {bill?.table.number}
                             </span>
                           </div>
                         </div>
@@ -468,7 +474,7 @@ export default function BillDashboard() {
                               Orders
                             </h3>
                             <ul className="space-y-2">
-                              {bill.orders.map((order) => (
+                              {bill?.orders.map((order) => (
                                 <li
                                   key={order._id}
                                   className="flex justify-between text-sm text-gray-700"
@@ -489,17 +495,20 @@ export default function BillDashboard() {
                               Total Amount
                             </span>
                             <span className="text-xl font-bold text-gray-900">
-                              ₹{bill.totalAmount}
+                              ₹{bill?.totalAmount}
                             </span>
                           </div>
 
                           <div className="mt-4 text-xs text-gray-500">
-                            Date: {new Date(bill.createdAt).toLocaleString()}
+                            Date:{" "}
+                            {bill?.createdAt
+                              ? new Date(bill.createdAt).toLocaleString()
+                              : "N/A"}
                           </div>
 
                           <div className="mt-6 text-right">
                             <button
-                              onClick={() => openModal(bill)}
+                              onClick={() => bill && openModal(bill)}
                               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                               Update Status
