@@ -26,6 +26,5 @@ github_push:
     # 5. THE FIX: Use the full refname 'refs/heads/main'
     - git push mirror HEAD:refs/heads/main --force
 
-  when: manual
   only:
     - main
