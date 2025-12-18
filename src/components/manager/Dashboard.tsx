@@ -35,6 +35,10 @@ const Dashboard = () => {
     (state: RootState) => state.manager
   );
 
+  if (error) {
+    console.log("Error in deployed version:", error);
+  }
+
   useEffect(() => {
     if (isManager) {
       dispatch(fetchManagerDashboard());
