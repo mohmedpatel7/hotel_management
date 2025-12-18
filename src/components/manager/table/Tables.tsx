@@ -6,7 +6,7 @@ import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FiTable, FiTrash2 } from "react-icons/fi";
 import { FaPlusCircle } from "react-icons/fa";
 import { useToast } from "@/components/Toast";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function Tables() {
   const dispatch = useDispatch<AppDispatch>();
