@@ -83,9 +83,15 @@ export async function GET() {
       });
     }
 
+    const tableDetails = tables.map((table) => ({
+      _id: table._id,
+      status: table.status,
+      number: table.number,
+    }));
+
     return NextResponse.json({
       message: "Tables fetched successfully",
-      tables,
+      tables: tableDetails,
       status: 200,
       success: true,
     });

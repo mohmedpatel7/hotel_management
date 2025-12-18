@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Order from "@/lib/schema/Order";
+import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 /**
  * POST /api/reports/orders
@@ -35,8 +36,10 @@ import jwt, { JwtPayload } from "jsonwebtoken";
  */
 export async function POST(req: NextRequest) {
   try {
-    connectDB();
+    // ✅ Always await DB
+    await connectDB();
 
+    // 🔐 Auth
     const token = req.headers.get("manager_token");
     if (!token) {
       return NextResponse.json(
@@ -45,57 +48,90 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Verify token
-    let decoded: JwtPayload;
+    if (!process.env.JWT_SIGN) {
+      return NextResponse.json(
+        { message: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
+
     try {
-      decoded = jwt.verify(token, process.env.JWT_SIGN!) as JwtPayload;
+      jwt.verify(token, process.env.JWT_SIGN);
     } catch {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { from, to } = body;
+    // 📦 Body
+    const { from, to } = await req.json();
 
     if (!from || !to) {
       return NextResponse.json(
-        { error: "from and to body parameters are required" },
+        { error: "from and to are required" },
         { status: 400 }
       );
     }
 
     const fromDate = new Date(from);
     const toDate = new Date(to);
+    toDate.setHours(23, 59, 59, 999);
 
     if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
       return NextResponse.json(
-        { error: "Invalid date format. Use ISO 8601 format." },
+        { error: "Invalid date format. Use YYYY-MM-DD" },
         { status: 400 }
       );
     }
 
+    // 📄 1️⃣ Fetch orders
     const orders = await Order.find({
-      createdAt: {
-        $gte: fromDate,
-        $lte: toDate,
-      },
-    })
-      .populate({
-        path: "foodId",
-        select: "foodName",
-      })
-      .populate({
-        path: "weaterId",
-        select: "name",
-      })
-      .select("_id createdAt status foodId weaterId price tableNo")
+      createdAt: { $gte: fromDate, $lte: toDate },
+    }).lean();
+
+    if (!orders.length) {
+      return NextResponse.json({ orders: [] }, { status: 200 });
+    }
+
+    // 📄 2️⃣ Collect IDs
+    const foodIds = [...new Set(orders.map((o) => o.foodId?.toString()))];
+    const weaterIds = [...new Set(orders.map((o) => o.weaterId?.toString()))];
+
+    // 📄 3️⃣ Fetch related collections
+    const foods = await Food.find({ _id: { $in: foodIds } })
+      .select("foodName fullPrice")
       .lean();
 
-    return NextResponse.json({ orders }, { status: 200 });
+    const weaters = await Weater.find({ _id: { $in: weaterIds } })
+      .select("name")
+      .lean();
+
+    // 📄 4️⃣ Map for fast lookup
+    const foodMap = Object.fromEntries(
+      foods.map((f) => [(f._id as string).toString(), f])
+    );
+
+    const weaterMap = Object.fromEntries(
+      weaters.map((w) => [(w._id as string).toString(), w])
+    );
+
+    // 📄 5️⃣ Merge data
+    const result = orders.map((order) => ({
+      _id: order._id,
+      tableNo: order.tableNo,
+      status: order.status,
+      price: order.price,
+      quantity: order.quntity,
+      createdAt: order.createdAt,
+
+      food: foodMap[order.foodId?.toString()] || null,
+      weater: weaterMap[order.weaterId?.toString()] || null,
+    }));
+
+    return NextResponse.json({ orders: result }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({
-      message: "Internal Server Error",
-      error: error,
-      status: 500,
-    });
+    console.error("Order filter error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error },
+      { status: 500 }
+    );
   }
 }

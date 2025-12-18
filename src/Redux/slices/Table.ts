@@ -4,7 +4,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 const BASE_URL = "/api/table";
 
 interface Table {
-  id: string;
+  _id: string;
   status: string;
   number: number;
 }
@@ -177,7 +177,7 @@ const tableSlice = createSlice({
       .addCase(updateTableStatus.fulfilled, (state, action) => {
         state.loading = false;
         const index = state.tables.findIndex(
-          (table) => table.id === action.payload.table.id
+          (table) => table._id === action.payload.table._id
         );
         if (index !== -1) {
           state.tables[index] = action.payload.table;
@@ -198,7 +198,7 @@ const tableSlice = createSlice({
       .addCase(deleteTable.fulfilled, (state, action) => {
         state.loading = false;
         state.tables = state.tables.filter(
-          (table) => table.id !== action.payload.table.id
+          (table) => table._id !== action.payload.table._id
         );
       })
       .addCase(deleteTable.rejected, (state, action) => {

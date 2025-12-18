@@ -21,15 +21,19 @@ interface ManagerState {
     orders: {
       _id: string;
       createdAt: string;
-      foodId: {
-        foodName: string;
-        status: string;
-        price: number;
-        tableNo: number;
-      };
-      waiterId: {
-        name: string;
-      };
+      tableNo: number;
+      status: string;
+      price: number;
+      quantity: string;
+      food: {
+        _id?: string;
+        foodName?: string;
+        fullPrice?: string | number;
+      } | null;
+      weater: {
+        _id?: string;
+        name?: string;
+      } | null;
     }[];
   } | null;
   revenueReport: {
@@ -215,7 +219,6 @@ export const fetchOrdersReport = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
-      console.log(data);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {

@@ -175,7 +175,7 @@ export default function Tables() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {filteredTables.map((table) => (
                 <div
-                  key={table.id}
+                  key={table?._id}
                   className={`p-6 rounded-xl shadow-lg border transition-colors ${
                     table.status === "occupied" || table.status === "booked"
                       ? "bg-red-100 border-red-300"
@@ -188,7 +188,7 @@ export default function Tables() {
                     </h3>
                     <button
                       onClick={() => {
-                        openDeleteModal(table?._id || "");
+                        openDeleteModal(table._id);
                       }}
                       className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
                       aria-label="Delete table"
@@ -210,7 +210,6 @@ export default function Tables() {
             </div>
           )}
         </div>
-
         {/* Circle plus button fixed at bottom-right corner */}
         <button
           type="button"
