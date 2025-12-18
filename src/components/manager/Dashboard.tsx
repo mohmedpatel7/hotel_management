@@ -1,5 +1,5 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import {
   FaClock,
@@ -12,22 +12,28 @@ import {
 import { fetchManagerDashboard } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { useEffect } from "react";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
-  const isManager =
-    typeof window !== "undefined"
-      ? localStorage.getItem("manager_token")
-      : null;
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
   const dispatch = useDispatch<AppDispatch>();
   const { dashboard, loading, error } = useSelector(
     (state: RootState) => state.manager
   );
-
-  const { showToast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
     if (isManager) {

@@ -28,6 +28,16 @@ const FoodDetailsPage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   const [rendered, setRendered] = useState(false);
   useEffect(() => {

@@ -146,12 +146,17 @@ export default function BillDashboard() {
     }
   }, [updateMessage, updateError, showToast, refetch, closeModal]);
 
-  const isManager = localStorage.getItem("manager_token") || "";
-  if (!isManager) {
-    router.push("/");
-    showToast("Please Signin!", "error");
-    return null;
-  }
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   if (loading) {
     return (

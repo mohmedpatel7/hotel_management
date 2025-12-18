@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { addFoodItem } from "@/Redux/slices/Foodlist";
 import { useDispatch } from "react-redux";
@@ -43,11 +43,17 @@ export default function AddFood() {
 
   const { showToast } = useToast();
 
-  const isManager = localStorage.getItem("manager_token") !== null;
-  if (!isManager) {
-    router.push("/");
-    showToast("Please Signin!", "error");
-  }
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

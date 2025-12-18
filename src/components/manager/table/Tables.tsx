@@ -6,6 +6,7 @@ import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FiTable, FiTrash2 } from "react-icons/fi";
 import { FaPlusCircle } from "react-icons/fa";
 import { useToast } from "@/components/Toast";
+import { useRouter } from "next/router";
 
 export default function Tables() {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,9 +23,21 @@ export default function Tables() {
     "all" | "available" | "booked"
   >("all");
 
-  const isManager = localStorage.getItem("manager_token") !== null;
-
   const { showToast } = useToast();
+
+  const router = useRouter();
+
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   // Fetch tables on mount
   useEffect(() => {
