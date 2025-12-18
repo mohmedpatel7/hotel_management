@@ -3,7 +3,13 @@ import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFoodList, deleteFoodItem } from "@/Redux/slices/Foodlist";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FaPlusCircle, FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaPlusCircle,
+  FaEllipsisV,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+} from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useToast } from "../Toast";
 
@@ -40,6 +46,9 @@ const MenuList: React.FC = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [localFoodItems, setLocalFoodItems] = useState(foodItems);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { showToast } = useToast();
 
@@ -61,11 +70,21 @@ const MenuList: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const grouped = localFoodItems.reduce((acc, item) => {
+  useEffect(() => {
+    if (showSearch) {
+      searchInputRef.current?.focus();
+    }
+  }, [showSearch]);
+
+  const filteredItems = localFoodItems.filter((item) =>
+    item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const grouped = filteredItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, typeof localFoodItems>);
+  }, {} as Record<string, typeof filteredItems>);
 
   const handleAddFood = () => {
     router.push("/addFood");
@@ -155,9 +174,63 @@ const MenuList: React.FC = () => {
         className="bg-white min-h-screen px-6 py-10 relative"
       >
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 mb-10 text-left animate-pulse">
-            Menu
-          </h1>
+          {/* Header with Search */}
+          <div className="flex items-center justify-between mb-10">
+            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 animate-pulse">
+              Menu
+            </h1>
+
+            {/* Search Box */}
+            <div className="flex items-center gap-2">
+              {/* Mobile: show icon only until clicked */}
+              <div className="md:hidden">
+                {!showSearch ? (
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className="p-2 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors"
+                    aria-label="Open search"
+                  >
+                    <FaSearch className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-full px-3 py-1 shadow">
+                    <FaSearch className="text-orange-500" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search food..."
+                      className="outline-none text-sm w-32 text-gray-700"
+                    />
+                    <button
+                      onClick={() => {
+                        setShowSearch(false);
+                        setSearchQuery("");
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                      aria-label="Close search"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop: always show search input */}
+              <div className="hidden md:flex items-center gap-2 bg-white border border-orange-200 rounded-full px-4 py-2 shadow">
+                <FaSearch className="text-orange-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search food..."
+                  className="outline-none text-sm w-48 text-gray-700"
+                />
+              </div>
+            </div>
+          </div>
+
           {Object.entries(grouped).length === 0 && (
             <div className="text-center p-8 text-gray-700 animate-pulse">
               No menu items available.

@@ -26,7 +26,9 @@ export default function UserReport() {
       style={{ backgroundColor: "#ffffff" }}
     >
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600">User Report</h2>
+        <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
+          User Report
+        </h2>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">

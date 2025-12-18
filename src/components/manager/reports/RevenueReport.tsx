@@ -44,7 +44,7 @@ export default function RevenueReport() {
       style={{ backgroundColor: "#ffffff" }}
     >
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600">
+        <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
           Revenue Report
         </h2>
 

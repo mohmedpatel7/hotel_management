@@ -113,7 +113,9 @@ export default function Tables() {
         style={{ backgroundColor: "#ffffff" }}
       >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-orange-600">Tables</h2>
+          <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
+            Tables
+          </h2>
 
           {/* Filter Menu */}
           <div className="mb-6 flex flex-wrap gap-2">

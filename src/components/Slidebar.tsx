@@ -88,19 +88,32 @@ const Sidebar = () => {
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
 
+  // Close sidebar on mobile after link click
+  const handleLinkClick = () => {
+    if (window.innerWidth < 768) setIsOpen(false);
+  };
+
   return (
     <>
       {/* Mobile Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-orange-500 text-white md:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-orange-500 text-white md:hidden "
       >
         {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
       </button>
 
+      {/* Overlay for mobile when sidebar is open */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-transparent backdrop-blur-sm z-40 md:hidden"
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-transform duration-300 ease-out flex flex-col
+        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-transform duration-300 ease-out flex flex-col z-50
         ${
           isOpen ? "w-60 translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:w-60`}
@@ -130,6 +143,7 @@ const Sidebar = () => {
                     <li key={item.path}>
                       <Link
                         href={item.path}
+                        onClick={handleLinkClick}
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
                           ${
                             pathname === item.path
@@ -148,6 +162,7 @@ const Sidebar = () => {
                       <li key={item.path}>
                         <Link
                           href={item.path}
+                          onClick={handleLinkClick}
                           className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
                             ${
                               pathname === item.path
@@ -181,6 +196,7 @@ const Sidebar = () => {
                 <div className="absolute bottom-full left-0 w-full mb-2 bg-[#2d2927] rounded-xl shadow-lg overflow-hidden">
                   <Link
                     href="/profile"
+                    onClick={handleLinkClick}
                     className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
                   >
                     Profile Settings
@@ -194,6 +210,7 @@ const Sidebar = () => {
                       window.dispatchEvent(new Event("storage"));
                       showToast("Sign out Successfully.", "error");
                       router.push("/");
+                      if (window.innerWidth < 768) setIsOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-white hover:bg-orange-500 transition-colors flex items-center gap-2 text-sm"
                   >
@@ -206,6 +223,7 @@ const Sidebar = () => {
             <div className="space-y-2">
               <Link
                 href="/signinLandPage"
+                onClick={handleLinkClick}
                 className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:opacity-90 transition-opacity text-sm"
               >
                 <FaSignInAlt />

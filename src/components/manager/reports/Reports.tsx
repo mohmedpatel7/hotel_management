@@ -7,7 +7,7 @@ const Reports = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold text-[#ff5500] mb-12">
+      <h1 className="text-4xl font-bold text-[#ff5500] mb-12 md:mt-0 mt-6 text-center">
         Reports of Hotel Mumtaz Chicken
       </h1>
 

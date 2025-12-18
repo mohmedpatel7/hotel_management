@@ -41,11 +41,6 @@ const Dashboard = () => {
     }
   }, [dispatch, isManager]);
 
-  if (!isManager) {
-    router.push("/");
-    showToast("Please Signin!", "error");
-  }
-
   if (loading)
     return (
       <section
@@ -103,113 +98,119 @@ const Dashboard = () => {
   } = dashboard;
 
   return (
-    <div className="bg-[#ffffff] min-h-screen w-full p-6">
-      {/* Header Card */}
-      <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 rounded-lg shadow-md p-6 mt-9">
-        <h2 className="text-2xl font-bold mb-4 text-white">
-          Hotel Mumtaz Chicken
-        </h2>
-        <div className="flex items-center gap-2 mb-3">
-          <FaLocationDot className="text-white" />
-          <span className="text-white">Surat, Gujarat, India</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <FaClock className="text-white" />
-          <span className="text-white">Open: 18:00 - 01:00</span>
-        </div>
-      </div>
-
-      {/* Revenue Section */}
-      <div className="mt-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Revenue</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">
-                  Monthly Revenue
-                </h3>
-                <p className="text-2xl font-bold text-gray-800 mt-2">
-                  ₹{monthlyRevenue.toLocaleString("en-IN")}
-                </p>
-              </div>
-              <FaMoneyBillWave className="text-orange-400 text-3xl" />
-            </div>
+    isManager && (
+      <div className="bg-[#ffffff] min-h-screen w-full p-6">
+        {/* Header Card */}
+        <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 rounded-lg shadow-md p-6 mt-9">
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Hotel Mumtaz Chicken
+          </h2>
+          <div className="flex items-center gap-2 mb-3">
+            <FaLocationDot className="text-white" />
+            <span className="text-white">Surat, Gujarat, India</span>
           </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">
-                  Daily Orders
-                </h3>
-                <p className="text-2xl font-bold text-gray-800 mt-2">
-                  {todaysOrdersCount.toLocaleString("en-IN")}
-                </p>
-              </div>
-              <FaShoppingCart className="text-orange-400 text-3xl" />
-            </div>
+          <div className="flex items-center gap-2">
+            <FaClock className="text-white" />
+            <span className="text-white">Open: 18:00 - 01:00</span>
           </div>
         </div>
-      </div>
 
-      {/* Staff Section */}
-      <div className="mt-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Staff</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">
-                  Total Waiters
-                </h3>
-                <p className="text-2xl font-bold text-gray-800 mt-2">
-                  {totalWaiters}
-                </p>
+        {/* Revenue Section */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Revenue</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Monthly Revenue
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-800 mt-2">
+                    ₹{monthlyRevenue.toLocaleString("en-IN")}
+                  </p>
+                </div>
+                <FaMoneyBillWave className="text-orange-400 text-3xl" />
               </div>
-              <FaUserTie className="text-orange-400 text-3xl" />
             </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">Total Cooks</h3>
-                <p className="text-2xl font-bold text-gray-800 mt-2">
-                  {totalCooks}
-                </p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Daily Orders
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-800 mt-2">
+                    {todaysOrdersCount.toLocaleString("en-IN")}
+                  </p>
+                </div>
+                <FaShoppingCart className="text-orange-400 text-3xl" />
               </div>
-              <FaUtensils className="text-orange-400 text-3xl" />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Famous Foods */}
-      <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <FaHamburger className="text-orange-500 text-xl" />
-          <h3 className="text-xl font-bold text-gray-800">Famous Foods</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {famousFoods.length > 0 ? (
-            famousFoods.map((item, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-lg text-gray-800">
-                  {item.name}
-                </h4>
-                <p className="text-gray-700">₹{item.price}</p>
-                <p className="text-sm text-orange-500">{item.orders}+ orders</p>
+        {/* Staff Section */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Staff</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Total Waiters
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-800 mt-2">
+                    {totalWaiters}
+                  </p>
+                </div>
+                <FaUserTie className="text-orange-400 text-3xl" />
               </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-500">
-              No famous foods to display.
             </div>
-          )}
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Total Cooks
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-800 mt-2">
+                    {totalCooks}
+                  </p>
+                </div>
+                <FaUtensils className="text-orange-400 text-3xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Famous Foods */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FaHamburger className="text-orange-500 text-xl" />
+            <h3 className="text-xl font-bold text-gray-800">Famous Foods</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {famousFoods.length > 0 ? (
+              famousFoods.map((item, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-lg text-gray-800">
+                    {item.name}
+                  </h4>
+                  <p className="text-gray-700">₹{item.price}</p>
+                  <p className="text-sm text-orange-500">
+                    {item.orders}+ orders
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-500">
+                No famous foods to display.
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    )
   );
 };
 
