@@ -177,15 +177,16 @@ export const fetchManagerDashboard = createAsyncThunk(
           manager_token: localStorage.getItem("manager_token") || "",
         },
       });
-      const data = await response.json();
+
       if (!response.ok) {
         const error: ErrorType = {
-          message: data.message || "Failed to fetch dashboard",
+          message: "Failed to fetch dashboard",
           status: response.status,
         };
         return rejectWithValue(error);
       }
-      return data;
+
+      return await response.json();
     } catch (error) {
       const errorMessage: ErrorType = {
         message:
@@ -209,15 +210,15 @@ export const fetchOrdersReport = createAsyncThunk(
         },
         body: JSON.stringify({ from, to }),
       });
-      const data = await response.json();
       if (!response.ok) {
         const error: ErrorType = {
-          message: data.message || "Failed to fetch orders report",
+          message: "Failed to fetch dashboard",
           status: response.status,
         };
         return rejectWithValue(error);
       }
-      return data;
+
+      return await response.json();
     } catch (error) {
       const errorMessage: ErrorType = {
         message:
@@ -243,15 +244,15 @@ export const fetchRevenueReport = createAsyncThunk(
         },
         body: JSON.stringify({ from, to }),
       });
-      const data = await response.json();
       if (!response.ok) {
         const error: ErrorType = {
-          message: data.message || "Failed to fetch revenue report",
+          message: "Failed to fetch dashboard",
           status: response.status,
         };
         return rejectWithValue(error);
       }
-      return data;
+
+      return await response.json();
     } catch (error) {
       const errorMessage: ErrorType = {
         message:
@@ -277,15 +278,15 @@ export const fetchUsers = createAsyncThunk(
           manager_token: localStorage.getItem("manager_token") || "",
         },
       });
-      const data = await response.json();
       if (!response.ok) {
         const error: ErrorType = {
-          message: data.message || "Failed to fetch users",
+          message: "Failed to fetch dashboard",
           status: response.status,
         };
         return rejectWithValue(error);
       }
-      return data;
+
+      return await response.json();
     } catch (error) {
       const errorMessage: ErrorType = {
         message:
