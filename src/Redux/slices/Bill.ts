@@ -8,16 +8,11 @@ export const updateBillStatus = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const token = localStorage.getItem("manager_token");
-      if (!token) {
-        return rejectWithValue("Authorization Failed !");
-      }
-
       const response = await fetch("/api/graphql/status", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token,
+          manager_token: localStorage.getItem("manager_token") || "",
         },
         body: JSON.stringify({ billId, status }),
       });

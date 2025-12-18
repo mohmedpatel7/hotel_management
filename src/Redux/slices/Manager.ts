@@ -170,12 +170,11 @@ export const fetchManagerDashboard = createAsyncThunk(
   "manager/dashboard",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("manager_token");
       const response = await fetch("/api/reports/dashboard", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token || "",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
       });
       const data = await response.json();
@@ -202,12 +201,11 @@ export const fetchOrdersReport = createAsyncThunk(
   "manager/ordersReport",
   async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("manager_token");
       const response = await fetch("/api/reports/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token || "",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
         body: JSON.stringify({ from, to }),
       });
@@ -237,12 +235,11 @@ export const fetchRevenueReport = createAsyncThunk(
   "manager/revenueReport",
   async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("manager_token");
       const response = await fetch("/api/reports/revenue", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token || "",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
         body: JSON.stringify({ from, to }),
       });
@@ -273,12 +270,11 @@ export const fetchUsers = createAsyncThunk(
   "manager/users",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("manager_token");
       const response = await fetch("/api/reports/users", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token || "",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
       });
       const data = await response.json();
