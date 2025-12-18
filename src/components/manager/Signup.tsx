@@ -1,10 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaLock, FaUserTie, FaEye, FaEyeSlash } from "react-icons/fa";
 import { signUpManager } from "@/Redux/slices/Manager";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
 import { useToast } from "../Toast";
+import { useRouter } from "next/navigation";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,8 +25,19 @@ const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const isManager = localStorage.getItem("manager_token");
   const { showToast } = useToast();
+  const router = useRouter();
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   const validateForm = () => {
     let isValid = true;

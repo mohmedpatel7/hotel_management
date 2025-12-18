@@ -27,9 +27,15 @@ const Signin: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const isManager = localStorage.getItem("manager_token");
-  const isCook = localStorage.getItem("cook_token");
-  const isWaiter = localStorage.getItem("waiter_token");
+  const isManager =
+    typeof window !== "undefined" &&
+    localStorage.getItem("manager_token") !== null;
+  const isCook =
+    typeof window !== "undefined" &&
+    localStorage.getItem("cook_token") !== null;
+  const isWaiter =
+    typeof window !== "undefined" &&
+    localStorage.getItem("waiter_token") !== null;
 
   const router = useRouter();
   const { showToast } = useToast();
