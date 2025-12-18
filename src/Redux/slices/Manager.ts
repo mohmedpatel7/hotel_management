@@ -170,7 +170,7 @@ export const fetchManagerDashboard = createAsyncThunk(
   "manager/dashboard",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/reportss/dashboard", {
+      const response = await fetch("/api/manager_reports/dashboard", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +202,7 @@ export const fetchOrdersReport = createAsyncThunk(
   "manager/ordersReport",
   async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/reportss/orders", {
+      const response = await fetch("/api/manager_reports/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -236,7 +236,7 @@ export const fetchRevenueReport = createAsyncThunk(
   "manager/revenueReport",
   async ({ from, to }: { from: string; to: string }, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/reportss/revenue", {
+      const response = await fetch("/api/manager_reports/revenue", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -271,7 +271,7 @@ export const fetchUsers = createAsyncThunk(
   "manager/users",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/reportss/users", {
+      const response = await fetch("/api/manager_reports/users", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
