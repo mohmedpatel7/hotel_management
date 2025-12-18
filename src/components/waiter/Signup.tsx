@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUser,
   FaLock,
@@ -10,12 +10,12 @@ import {
 import { AppDispatch } from "@/Redux/store/store";
 import { useDispatch } from "react-redux";
 import { createWaiter } from "@/Redux/slices/Waiter";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useToast } from "../Toast";
 
 const Signup: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  // const router = useRouter();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -31,10 +31,19 @@ const Signup: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const isManager = localStorage.getItem("manager_token");
-
   const { showToast } = useToast();
+
+  const [isManager, setIsManager] = useState(false);
+  useEffect(() => {
+    const isManager =
+      typeof window !== "undefined" &&
+      localStorage.getItem("manager_token") !== null;
+    setIsManager(isManager);
+    if (!isManager) {
+      router.replace("/");
+      showToast("Please Signin!", "error");
+    }
+  }, [router, showToast]);
 
   const validateForm = () => {
     let isValid = true;
