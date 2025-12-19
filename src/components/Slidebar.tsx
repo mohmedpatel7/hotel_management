@@ -195,11 +195,11 @@ const Sidebar = () => {
               {showProfileMenu && (
                 <div className="absolute bottom-full left-0 w-full mb-2 bg-[#2d2927] rounded-xl shadow-lg overflow-hidden">
                   <Link
-                    href="/profile"
+                    href="/managerProfile"
                     onClick={handleLinkClick}
                     className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
                   >
-                    Profile Settings
+                    Profile
                   </Link>
                   <button
                     onClick={() => {
