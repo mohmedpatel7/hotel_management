@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  turbopack: {}, // ⬅ REQUIRED to silence Turbopack
 };
 
 export default withPWA({
