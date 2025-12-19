@@ -136,15 +136,16 @@ export default function OrdersReports() {
 
   return (
     <section
-      className="min-h-screen px-6 py-10"
+      className="min-h-screen px-4 sm:px-6 py-10"
       style={{ backgroundColor: "#ffffff" }}
     >
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-orange-600 mt-6 sm:mt-0 text-center md:text-left">
           Orders Report
         </h2>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        {/* Date filters & actions */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6 sm:mb-8">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               From
@@ -167,7 +168,7 @@ export default function OrdersReports() {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 bg-white shadow-sm transition"
             />
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex flex-wrap items-end gap-2">
             <button
               onClick={handleSubmit}
               className="px-4 py-3 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition"
@@ -194,6 +195,7 @@ export default function OrdersReports() {
           </div>
         </div>
 
+        {/* Error state */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
             <div className="text-red-500 mb-3">
@@ -223,6 +225,7 @@ export default function OrdersReports() {
           </div>
         )}
 
+        {/* Loading state */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -232,6 +235,7 @@ export default function OrdersReports() {
           </div>
         )}
 
+        {/* Empty states */}
         {!loading && !error && !ordersReport && (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -260,103 +264,105 @@ export default function OrdersReports() {
           </div>
         )}
 
+        {/* Results section */}
         {!loading && !error && ordersReport && orders.length > 0 && (
           <>
+            {/* Table wrapper with horizontal scroll on small screens */}
             <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
               <table className="min-w-full border-collapse bg-white">
                 <thead>
                   <tr className="bg-orange-500 text-white">
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
                       Food Name
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">Price</th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
+                      Price
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
                       Table No.
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
                       Created At
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
                       Order Status
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
                       Waiter
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => {
-                    return (
-                      <tr
-                        key={order._id}
-                        className="hover:bg-orange-50 transition-colors"
+                  {orders.map((order) => (
+                    <tr
+                      key={order._id}
+                      className="hover:bg-orange-50 transition-colors"
+                    >
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-blue-700 font-medium">
+                        {order.food?.foodName ?? "—"}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-green-600 font-semibold">
+                        {order?.price ? `₹${order.price}` : "—"}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-purple-600 text-center font-medium">
+                        {order?.tableNo ?? "—"}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-indigo-700 whitespace-nowrap font-medium">
+                        {new Date(order.createdAt).toLocaleString()}
+                      </td>
+                      <td
+                        className={`px-4 sm:px-6 py-3 sm:py-4 capitalize font-semibold ${
+                          order?.status === "pending"
+                            ? "text-yellow-600"
+                            : order?.status === "completed"
+                            ? "text-green-600"
+                            : order?.status === "cancelled"
+                            ? "text-red-600"
+                            : "text-gray-800"
+                        }`}
                       >
-                        <td className="px-6 py-4 text-blue-700 font-medium">
-                          {order.food?.foodName ?? "—"}
-                        </td>
-                        <td className="px-6 py-4 text-green-600 font-semibold">
-                          {order?.price ? `₹${order.price}` : "—"}
-                        </td>
-                        <td className="px-6 py-4 text-purple-600 text-center font-medium">
-                          {order?.tableNo ?? "—"}
-                        </td>
-                        <td className="px-6 py-4 text-indigo-700 whitespace-nowrap font-medium">
-                          {new Date(order.createdAt).toLocaleString()}
-                        </td>
-                        <td
-                          className={`px-6 py-4 capitalize font-semibold ${
-                            order?.status === "pending"
-                              ? "text-yellow-600"
-                              : order?.status === "completed"
-                              ? "text-green-600"
-                              : order?.status === "cancelled"
-                              ? "text-red-600"
-                              : "text-gray-800"
-                          }`}
-                        >
-                          {order?.status ?? "—"}
-                        </td>
-                        <td className="px-6 py-4 text-teal-700 font-medium">
-                          {order?.weater?.name ?? "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        {order?.status ?? "—"}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-teal-700 font-medium">
+                        {order?.weater?.name ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Summary Section */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            {/* Summary cards */}
+            <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
                   Total Orders
                 </h3>
-                <p className="text-3xl font-bold text-orange-600">
+                <p className="text-2xl sm:text-3xl font-bold text-orange-600">
                   {totalOrders}
                 </p>
               </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
                   Total Revenue
                 </h3>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-2xl sm:text-3xl font-bold text-green-600">
                   ₹{totalPrice.toFixed(2)}
                 </p>
               </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
                   Pending
                 </h3>
-                <p className="text-3xl font-bold text-yellow-600">
+                <p className="text-2xl sm:text-3xl font-bold text-yellow-600">
                   {pendingOrders}
                 </p>
               </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
                   Completed
                 </h3>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-2xl sm:text-3xl font-bold text-green-600">
                   {completedOrders}
                 </p>
               </div>

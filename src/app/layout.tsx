@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Hotel Mumtaz Chicken",
   description: "",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

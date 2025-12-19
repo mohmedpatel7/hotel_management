@@ -193,26 +193,28 @@ const MenuList: React.FC = () => {
                     <FaSearch className="w-5 h-5" />
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-full px-3 py-1 shadow">
-                    <FaSearch className="text-orange-500" />
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search food..."
-                      className="outline-none text-sm w-32 text-gray-700"
-                    />
-                    <button
-                      onClick={() => {
-                        setShowSearch(false);
-                        setSearchQuery("");
-                      }}
-                      className="text-gray-500 hover:text-gray-700"
-                      aria-label="Close search"
-                    >
-                      ×
-                    </button>
+                  <div className="flex flex-col gap-2 bg-white border border-orange-200 rounded-lg px-3 py-2 shadow w-full max-w-xs">
+                    <div className="flex items-center gap-2">
+                      <FaSearch className="text-orange-500" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search food..."
+                        className="outline-none text-sm flex-1 text-gray-700"
+                      />
+                      <button
+                        onClick={() => {
+                          setShowSearch(false);
+                          setSearchQuery("");
+                        }}
+                        className="text-gray-500 hover:text-gray-700"
+                        aria-label="Close search"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
