@@ -7,14 +7,22 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fff8f3]">
       {/* Hero Section */}
-      <div className="relative h-[600px]">
+      <div
+        className="relative h-[600px] bg-cover bg-center"
+        style={{ backgroundImage: "url('/food-hero.jpg')" }}
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-[#ff5500]/90 to-[#ff5800]/80" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
             <h1 className="text-6xl font-bold mb-4">
-              Welcome to Mumtaz Chicken
+              Delicious Food, Delivered Fast
             </h1>
-            <p className="text-2xl">Delicious Food, Delivered Fast</p>
+            <p className="text-2xl mb-8">
+              Order your favorite meals with ease and speed.
+            </p>
+            <button className="bg-white text-[#ff5500] px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300">
+              View Menu
+            </button>
           </div>
         </div>
       </div>
@@ -26,25 +34,7 @@ const LandingPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Manager Card */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <FaUserTie className="w-10 h-10 text-[#ff5500]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Manager
-              </h3>
-              <p className="text-gray-700">
-                Oversees operations and ensures quality service
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Cook Card */}
+          {/* Chef Card */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
@@ -54,15 +44,15 @@ const LandingPage: React.FC = () => {
                 <FaUtensils className="w-10 h-10 text-[#ff5500]" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Cook
+                Our Chefs
               </h3>
               <p className="text-gray-700">
-                Prepares delicious meals with expertise
+                Crafting delicious meals with passion and expertise.
               </p>
             </div>
           </motion.div>
 
-          {/* Waiter Card */}
+          {/* Delivery Card */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
@@ -72,10 +62,28 @@ const LandingPage: React.FC = () => {
                 <FaConciergeBell className="w-10 h-10 text-[#ff5500]" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Waiter
+                Delivery Heroes
               </h3>
               <p className="text-gray-700">
-                Provides excellent service to customers
+                Ensuring your food arrives fresh and on time.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Support Card */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
+          >
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <FaUserTie className="w-10 h-10 text-[#ff5500]" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
+                Customer Support
+              </h3>
+              <p className="text-gray-700">
+                Always ready to assist you with any queries.
               </p>
             </div>
           </motion.div>
@@ -114,6 +122,46 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </div> */}
+
+      {/* Testimonials Section */}
+      <div className="container mx-auto py-16 px-4">
+        <h2 className="text-4xl font-bold text-center mb-12 text-[#ff5500]">
+          What Our Guests Say
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
+          >
+            <p className="text-gray-700 italic mb-4">
+              Absolutely stunning hotel with impeccable service. The rooms were
+              luxurious and the staff went above and beyond to make our stay
+              comfortable.
+            </p>
+            <p className="font-semibold text-[#ff5500]">- Jane Doe</p>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
+          >
+            <p className="text-gray-700 italic mb-4">
+              The dining experience was exceptional! Every meal was a delight,
+              and the variety of options was impressive. Highly recommend!
+            </p>
+            <p className="font-semibold text-[#ff5500]">- John Smith</p>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
+          >
+            <p className="text-gray-700 italic mb-4">
+              A truly relaxing spa experience. I left feeling refreshed and
+              rejuvenated. The perfect getaway!
+            </p>
+            <p className="font-semibold text-[#ff5500]">- Emily White</p>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

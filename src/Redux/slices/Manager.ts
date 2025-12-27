@@ -138,12 +138,11 @@ export const getManagerProfile = createAsyncThunk(
   "manager/profile",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("manager_token");
-      const response = await fetch("/api/manager/profile", {
+      const response = await fetch("/api/manager/auth/signup", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          manager_token: token || "",
+          manager_token: localStorage.getItem("manager_token") || "",
         },
       });
       const data = await response.json();
@@ -154,6 +153,8 @@ export const getManagerProfile = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
+
+      console.log(data);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {

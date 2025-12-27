@@ -98,6 +98,8 @@ export async function GET(req: NextRequest) {
       userId: manager.userId,
     };
 
+    console.log(response);
+
     return NextResponse.json({
       success: true,
       status: 200,
