@@ -5,11 +5,18 @@ stages:
 typeCheck:
   stage: test1
   image: node:20-alpine
-  
+  script:
+    - npm ci
+    - npx tsc --noEmit
+
+  when: manual
+  only:
+    - main
 
 github_push:
   stage: sync
   image: alpine:latest
+  needs: ["typeCheck"]
   before_script:
     - apk add --no-cache git
     # Setup identity so Git doesn't complain
@@ -31,6 +38,5 @@ github_push:
 
     # 5. THE FIX: Use the full refname 'refs/heads/main'
     - git push mirror HEAD:refs/heads/main --force
-  when: manual
   only:
     - main
