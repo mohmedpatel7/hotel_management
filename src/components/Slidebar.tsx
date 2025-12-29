@@ -87,6 +87,7 @@ const Sidebar = () => {
 
   const waiterMenuItems = [
     { path: "/waiterTable", name: "Tables", icon: <FaTable size={18} /> },
+    { path: "/waiterMenu", name: "Menu", icon: <FaUtensils size={18} /> },
   ];
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -186,7 +187,7 @@ const Sidebar = () => {
 
           {/* Navigation for waiter */}
           <nav>
-            <ul className="space-y-2">
+            <ul className="space-y-2 mt-2">
               {isWaiter &&
                 waiterMenuItems.map((item) => (
                   <li key={item.path}>

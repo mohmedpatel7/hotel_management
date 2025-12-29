@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Check food exists & available
-    const food = await Food.findById(foodId);
+    const food = await Food.findById({ _id: foodId });
     if (!food) {
       return NextResponse.json({ message: "Food not found!" }, { status: 404 });
     }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Check waiter
-    const waiter = await Weater.findById(weaterId);
+    const waiter = await Weater.findById({ _id: weaterId });
     if (!waiter) {
       return NextResponse.json({
         message: "Waiter not found!",
