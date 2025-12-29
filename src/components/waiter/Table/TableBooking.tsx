@@ -1,10 +1,9 @@
 "use client";
-import { fetchTables, createTable, deleteTable } from "@/Redux/slices/Table";
+import { fetchTables, updateTableStatus } from "@/Redux/slices/Table";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiTable, FiTrash2 } from "react-icons/fi";
-import { FaPlusCircle } from "react-icons/fa";
+import { FiTable, FiEdit } from "react-icons/fi";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 
@@ -14,10 +13,15 @@ export default function Tables() {
     (state: RootState) => state.table
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tableNumber, setTableNumber] = useState("");
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [tableToUpdate, setTableToUpdate] = useState<{
+    id: string;
+    status: string;
+    number: number;
+  } | null>(null);
+  const [newStatus, setNewStatus] = useState<"available" | "booked">(
+    "available"
+  );
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "available" | "booked"
@@ -27,13 +31,13 @@ export default function Tables() {
 
   const router = useRouter();
 
-  const [isManager, setIsManager] = useState(false);
+  const [isWaiter, setisWaiter] = useState(false);
   useEffect(() => {
-    const isManager =
+    const isWaiter =
       typeof window !== "undefined" &&
-      localStorage.getItem("manager_token") !== null;
-    setIsManager(isManager);
-    if (!isManager) {
+      localStorage.getItem("weater_token") !== null;
+    setisWaiter(isWaiter);
+    if (!isWaiter) {
       router.replace("/");
       showToast("Please Signin!", "error");
     }
@@ -44,60 +48,41 @@ export default function Tables() {
     dispatch(fetchTables());
   }, [dispatch]);
 
-  const handleAddTable = () => {
-    setIsModalOpen(true);
+  const openUpdateModal = (table: {
+    _id: string;
+    status: string;
+    number: number;
+  }) => {
+    setTableToUpdate({
+      id: table._id,
+      status: table.status,
+      number: table.number,
+    });
+    setNewStatus(table.status as "available" | "booked");
+    setIsUpdateModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setTableNumber("");
+  const closeUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+    setTableToUpdate(null);
   };
 
-  const handleCreateTable = async () => {
-    if (!tableNumber.trim()) {
-      showToast("Table number is required", "error");
-      return;
-    }
+  const handleUpdateTableStatus = async () => {
+    if (!tableToUpdate || !newStatus) return;
 
-    const tableData = {
-      status: "available",
-      number: parseInt(tableNumber, 10),
-    };
     try {
-      await dispatch(createTable(tableData)).unwrap();
-      showToast("Table created successfully", "success");
-      handleCloseModal();
-    } catch (error) {
-      showToast(
-        (error as { message?: string })?.message || "Failed to create table",
-        "error"
-      );
-    }
-  };
-
-  const openDeleteModal = (tableId: string) => {
-    setSelectedTable(tableId);
-    setDeleteModalOpen(true);
-  };
-
-  const closeDeleteModal = () => {
-    setDeleteModalOpen(false);
-    setSelectedTable(null);
-  };
-
-  const handleDeleteTable = async () => {
-    if (!selectedTable) return;
-    try {
-      await dispatch(deleteTable(selectedTable)).unwrap();
-      showToast("Table deleted successfully", "success");
+      await dispatch(
+        updateTableStatus({ id: tableToUpdate.id, status: newStatus })
+      ).unwrap();
+      showToast("Table status updated successfully", "success");
       dispatch(fetchTables());
+      closeUpdateModal();
     } catch (error) {
       showToast(
-        (error as { message?: string })?.message || "Failed to delete table",
+        (error as { message?: string })?.message ||
+          "Failed to update table status",
         "error"
       );
-    } finally {
-      closeDeleteModal();
     }
   };
 
@@ -107,7 +92,7 @@ export default function Tables() {
   });
 
   return (
-    isManager && (
+    isWaiter && (
       <section
         className="min-h-screen px-6 py-10"
         style={{ backgroundColor: "#ffffff" }}
@@ -203,12 +188,12 @@ export default function Tables() {
                     </h3>
                     <button
                       onClick={() => {
-                        openDeleteModal(table._id);
+                        openUpdateModal(table);
                       }}
                       className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
-                      aria-label="Delete table"
+                      aria-label="Edit table status"
                     >
-                      <FiTrash2 className="h-6 w-6 text-orange-500" />
+                      <FiEdit className="h-6 w-6 text-orange-500" />
                     </button>
                   </div>
                   <p
@@ -225,83 +210,56 @@ export default function Tables() {
             </div>
           )}
         </div>
-        {/* Circle plus button fixed at bottom-right corner */}
-        <button
-          type="button"
-          aria-label="Add new table"
-          onClick={handleAddTable}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center animate-bounce"
-        >
-          <FaPlusCircle className="w-8 h-8" />
-        </button>
 
-        {/* Modal for adding table */}
-        {isModalOpen && (
+        {/* Modal for update status */}
+        {isUpdateModalOpen && tableToUpdate && (
           <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-lg p-6 w-80">
               <h3 className="text-xl font-bold text-orange-600 mb-4">
-                Add Table
+                Update Table Status
               </h3>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Table Number
-              </label>
-              <input
-                type="text"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-800  focus:ring-orange-500"
-                placeholder="Enter table number"
-              />
-
-              <div className="mt-8 flex justify-end gap-4">
-                <button
-                  onClick={handleCloseModal}
-                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateTable}
-                  disabled={loading}
-                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
-                >
-                  {loading && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  )}
-                  Add
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal for delete confirmation */}
-        {deleteModalOpen && (
-          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-              <h3 className="text-xl font-bold text-red-600 mb-4">
-                Confirm Delete
-              </h3>
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete this table?
+              <p className="text-gray-700 mb-4">
+                Table Number: {tableToUpdate.number}
               </p>
 
+              <div className="space-y-2">
+                <p className="text-gray-600 font-medium">Select new status:</p>
+                <div className="flex gap-4">
+                  {(["available", "booked"] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setNewStatus(status)}
+                      className={`flex-1 px-4 py-3 rounded-md text-sm font-semibold border transition-all duration-200 ${
+                        newStatus === status
+                          ? "text-white shadow-lg transform scale-105 " +
+                            (status === "available"
+                              ? "bg-green-500 border-green-600"
+                              : "bg-red-500 border-red-600")
+                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="mt-8 flex justify-end gap-4">
                 <button
-                  onClick={closeDeleteModal}
+                  onClick={closeUpdateModal}
                   className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleDeleteTable}
+                  onClick={handleUpdateTableStatus}
                   disabled={loading}
                   className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
                 >
                   {loading && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   )}
-                  Delete
+                  Update
                 </button>
               </div>
             </div>

@@ -84,7 +84,7 @@ export const updateTableStatus = createAsyncThunk<
   { rejectValue: { message: string } }
 >("table/updateTableStatus", async ({ id, status }, { rejectWithValue }) => {
   try {
-    const response = await fetch(`${BASE_URL}/updateStatus/${id}`, {
+    const response = await fetch(`${BASE_URL}/createTable/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

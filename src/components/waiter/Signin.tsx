@@ -35,7 +35,7 @@ const Signin: React.FC = () => {
     localStorage.getItem("cook_token") !== null;
   const isWaiter =
     typeof window !== "undefined" &&
-    localStorage.getItem("waiter_token") !== null;
+    localStorage.getItem("weater_token") !== null;
 
   const router = useRouter();
   const { showToast } = useToast();
@@ -78,7 +78,7 @@ const Signin: React.FC = () => {
       if (response.success && response.weater_token) {
         localStorage.setItem("weater_token", response.weater_token);
         showToast(response.message || "Signed in successfully!", "success");
-        router.push("/dashboardWaiter");
+        router.push("/waiterTable");
       } else {
         localStorage.removeItem("weater_token");
         showToast(response.message || "Authentication failed", "error");

@@ -85,6 +85,10 @@ const Sidebar = () => {
     },
   ];
 
+  const waiterMenuItems = [
+    { path: "/waiterTable", name: "Tables", icon: <FaTable size={18} /> },
+  ];
+
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
 
@@ -135,7 +139,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation for manager */}
           <nav>
             <ul className="space-y-2">
               {isManger
@@ -177,6 +181,30 @@ const Sidebar = () => {
                         </Link>
                       </li>
                     ))}
+            </ul>
+          </nav>
+
+          {/* Navigation for waiter */}
+          <nav>
+            <ul className="space-y-2">
+              {isWaiter &&
+                waiterMenuItems.map((item) => (
+                  <li key={item.path}>
+                    <Link
+                      href={item.path}
+                      onClick={handleLinkClick}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                          ${
+                            pathname === item.path
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
+                          }`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span className="font-medium text-sm">{item.name}</span>
+                    </Link>
+                  </li>
+                ))}
             </ul>
           </nav>
         </div>

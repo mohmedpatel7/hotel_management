@@ -60,7 +60,10 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const table = await Table.findByIdAndUpdate(id, { status: status });
+    const table = await Table.findByIdAndUpdate(
+      { _id: id },
+      { status: status }
+    );
 
     if (!table) {
       return NextResponse.json({
