@@ -1,5 +1,11 @@
 stages:
+  - test1
   - sync
+
+typeCheck:
+  stage: test1
+  image: node:20-alpine
+  
 
 github_push:
   stage: sync
