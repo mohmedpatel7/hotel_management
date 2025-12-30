@@ -2,15 +2,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFoodList, deleteFoodItem } from "@/Redux/slices/Foodlist";
+import { createOrder } from "@/Redux/slices/Order";
+import { fetchTables } from "@/Redux/slices/Table";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import {
-  FaPlusCircle,
-  FaEllipsisV,
-  FaEdit,
-  FaTrash,
-  FaSearch,
-} from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { FaSearch } from "react-icons/fa";
+import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/Toast";
 
 const categoryOrder = [
@@ -38,10 +34,13 @@ const categoryEmoji: Record<string, string> = {
 
 const MenuList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
   const { foodItems, loading, error } = useSelector(
     (state: RootState) => state.foodlist
   );
+  const { loading: orderLoading } = useSelector(
+    (state: RootState) => state.order
+  );
+  const { tables } = useSelector((state: RootState) => state.table);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -50,10 +49,24 @@ const MenuList: React.FC = () => {
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [selectedFoodItem, setSelectedFoodItem] = useState<{
+    _id: string;
+    foodName: string;
+    halfPrice?: number;
+    fullPrice: number;
+  } | null>(null);
+  const [selectedQuantity, setSelectedQuantity] = useState<
+    "half" | "full" | ""
+  >("");
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [weaterId, setWeaterId] = useState<string | null>(null);
+
   const { showToast } = useToast();
 
   useEffect(() => {
     dispatch(getFoodList());
+    dispatch(fetchTables());
   }, [dispatch]);
 
   useEffect(() => {
@@ -76,6 +89,20 @@ const MenuList: React.FC = () => {
     }
   }, [showSearch]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("weater_token");
+      if (token) {
+        try {
+          const decodedToken: { id: string } = jwtDecode(token);
+          setWeaterId(decodedToken.id);
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+    }
+  }, []);
+
   const filteredItems = localFoodItems.filter((item) =>
     item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -85,6 +112,52 @@ const MenuList: React.FC = () => {
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, typeof filteredItems>);
+
+  const calculatePrice = () => {
+    if (!selectedFoodItem || !selectedQuantity) return 0;
+    if (selectedQuantity === "half") {
+      return selectedFoodItem.halfPrice || 0;
+    } else if (selectedQuantity === "full") {
+      return selectedFoodItem.fullPrice || 0;
+    }
+    return 0;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!selectedFoodItem || !selectedQuantity || !selectedTable || !weaterId) {
+      showToast("Please select food, quantity, and table.", "error");
+      return;
+    }
+
+    const price = calculatePrice();
+    if (price === 0) {
+      showToast("Invalid price for selected quantity.", "error");
+      return;
+    }
+
+    try {
+      await dispatch(
+        createOrder({
+          foodId: selectedFoodItem._id,
+          quntity: selectedQuantity,
+          price: price,
+          weaterId: weaterId,
+          tableNo: parseInt(selectedTable),
+        })
+      ).unwrap();
+      showToast("Order placed successfully!", "success");
+      setIsOrderModalOpen(false);
+      setSelectedFoodItem(null);
+      setSelectedQuantity("");
+      setSelectedTable(null);
+    } catch (err: unknown) {
+      showToast(
+        (err as { message?: string }).message ||
+          "Failed to place order. Please try again.",
+        "error"
+      );
+    }
+  };
 
   if (loading)
     return (
@@ -222,7 +295,18 @@ const MenuList: React.FC = () => {
                   {grouped[category].map((item, itemIndex) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp"
+                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp cursor-pointer"
+                      onClick={() => {
+                        setSelectedFoodItem({
+                          _id: item.id,
+                          foodName: item.foodName,
+                          halfPrice: item.halfPrice
+                            ? Number(item.halfPrice)
+                            : undefined,
+                          fullPrice: Number(item.fullPrice),
+                        });
+                        setIsOrderModalOpen(true);
+                      }}
                       style={{
                         animationDelay: `${catIndex * 100 + itemIndex * 50}ms`,
                         animationFillMode: "forwards",
@@ -301,6 +385,84 @@ const MenuList: React.FC = () => {
           animation: fadeInUp 0.4s ease-in-out;
         }
       `}</style>
+
+      {/* Order Modal */}
+      {isOrderModalOpen && selectedFoodItem && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+            <h3 className="text-xl font-bold text-orange-600 mb-4">
+              Place Order for {selectedFoodItem.foodName}
+            </h3>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Quantity:
+              </label>
+              <select
+                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={selectedQuantity}
+                onChange={(e) =>
+                  setSelectedQuantity(e.target.value as "half" | "full")
+                }
+              >
+                <option value="">Select Quantity</option>
+                {selectedFoodItem.halfPrice && (
+                  <option value="half">
+                    Half (₹{selectedFoodItem.halfPrice})
+                  </option>
+                )}
+                <option value="full">
+                  Full (₹{selectedFoodItem.fullPrice})
+                </option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Table Number:
+              </label>
+              <select
+                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={selectedTable || ""}
+                onChange={(e) => setSelectedTable(e.target.value)}
+              >
+                <option value="">Select Table</option>
+                {tables
+                  ?.filter((table) => table.status === "booked")
+                  .map((table) => (
+                    <option key={table._id} value={table.number}>
+                      Table {table.number} ({table.status})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <button
+                onClick={() => {
+                  setIsOrderModalOpen(false);
+                  setSelectedFoodItem(null);
+                  setSelectedQuantity("");
+                  setSelectedTable(null);
+                }}
+                className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePlaceOrder}
+                disabled={orderLoading}
+                className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+              >
+                {orderLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                )}
+                Place Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -146,6 +146,10 @@ export default function BillDashboard() {
     }
   }, [updateMessage, updateError, showToast, refetch, closeModal]);
 
+  const refreshData = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   const [isManager, setIsManager] = useState(false);
   useEffect(() => {
     const isManager =
@@ -241,7 +245,7 @@ export default function BillDashboard() {
         </h1>
 
         {/* Filter Menu */}
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap gap-2 items-center">
           {(["all", "pending", "completed", "cancelled"] as const).map((s) => (
             <button
               key={s}
@@ -255,6 +259,12 @@ export default function BillDashboard() {
               {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
+          <button
+            onClick={refreshData}
+            className="ml-auto px-4 py-2 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          >
+            Refresh
+          </button>
         </div>
 
         {isManager && bills.length === 0 ? (

@@ -35,6 +35,7 @@ export const createOrder = createAsyncThunk<
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        weater_token: localStorage.getItem("weater_token") || "",
       },
       body: JSON.stringify(orderData),
     });
