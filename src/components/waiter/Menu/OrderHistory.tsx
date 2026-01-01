@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { jwtDecode } from "jwt-decode";
@@ -92,7 +92,7 @@ export default function OrderHistory() {
     }
   }, [router, showToast]);
 
-  const { loading, error, data } = useQuery(GET_ORDERS_BY_WAITER_ID, {
+  const { loading, error, data, refetch } = useQuery(GET_ORDERS_BY_WAITER_ID, {
     variables: { weaterId: weaterId ?? "" },
     skip: !weaterId,
   });
@@ -101,6 +101,10 @@ export default function OrderHistory() {
     if (typeof value !== "string") return "";
     return value.replace(/`/g, "").trim();
   };
+
+  const refreshData = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   if (authStatus === "checking") {
     return (
@@ -186,6 +190,13 @@ export default function OrderHistory() {
               {item.label} ({item.count})
             </button>
           ))}
+
+          <button
+            onClick={refreshData}
+            className="ml-auto px-4 py-2 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          >
+            Refresh
+          </button>
         </div>
 
         {orders.length === 0 ? (
