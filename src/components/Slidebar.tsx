@@ -88,6 +88,11 @@ const Sidebar = () => {
   const waiterMenuItems = [
     { path: "/waiterTable", name: "Tables", icon: <FaTable size={18} /> },
     { path: "/waiterMenu", name: "Menu", icon: <FaUtensils size={18} /> },
+    {
+      path: "/waiterOrderHistory",
+      name: "Order History",
+      icon: <FaClipboardList size={18} />,
+    },
   ];
 
   const toggleSidebar = () => setIsOpen(!isOpen);

@@ -12,6 +12,7 @@ export const typeDefs = `
         type:String!     
         category:String!   
         foodName:String!   
+        foodImage:String!   
     }
 
     type Weater {
@@ -49,6 +50,7 @@ export const typeDefs = `
         getWeater: [Weater!]! 
         getOrder: [Order!]! 
         getBill: [Bill!]!   
+        getOrdersByWaiterId(weaterId: String!): [Order!]!
     }
 `;
 
@@ -60,6 +62,7 @@ import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import { GraphQLScalarType, Kind } from "graphql";
+import mongoose, { Types } from "mongoose";
 
 // Export resolvers: functions that actually fetch the data for each field
 export const resolvers = {
@@ -174,6 +177,17 @@ export const resolvers = {
       try {
         connectDB();
         return await Bill.find();
+      } catch (error) {
+        throw new Error("Internal server error", error as ErrorOptions);
+      }
+    },
+    getOrdersByWaiterId: async (
+      _: undefined,
+      { weaterId }: { weaterId: string }
+    ) => {
+      try {
+        connectDB();
+        return await Order.find({ weaterId: new Types.ObjectId(weaterId) });
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }
