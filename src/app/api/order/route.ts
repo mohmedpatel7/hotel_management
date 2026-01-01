@@ -164,6 +164,97 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Delete placed order API (also updates/removes bill)
+export async function DELETE(req: NextRequest) {
+  try {
+    await connectDB();
+
+    const token =
+      req.headers.get("weater_token") ?? req.headers.get("weater_token");
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization Failed !" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SIGN!);
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const searchParams = req.nextUrl.searchParams;
+    let orderId = searchParams.get("id") ?? searchParams.get("orderId") ?? "";
+
+    if (!orderId) {
+      try {
+        const body = await req.json();
+        orderId = body?.orderId ?? body?.id ?? "";
+      } catch {
+        orderId = "";
+      }
+    }
+
+    if (!orderId) {
+      return NextResponse.json({
+        message: "orderId is required!",
+        status: 400,
+        success: false,
+      });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return NextResponse.json({
+        message: "Order not found!",
+        status: 404,
+        success: false,
+      });
+    }
+
+    const bill = await Bill.findOne({ orderIds: order._id }).sort({
+      createdAt: -1,
+    });
+
+    let deletedBillId: string | null = null;
+
+    if (bill) {
+      const updatedBill = await Bill.findByIdAndUpdate(
+        bill._id,
+        { $pull: { orderIds: order._id }, $inc: { totalAmount: -order.price } },
+        { new: true }
+      );
+
+      if (updatedBill && updatedBill.totalAmount < 0) {
+        updatedBill.totalAmount = 0;
+        await updatedBill.save();
+      }
+
+      if (updatedBill && updatedBill.orderIds.length === 0) {
+        deletedBillId = String(updatedBill._id);
+        await Bill.findByIdAndDelete(updatedBill._id);
+      }
+    }
+
+    await Order.findByIdAndDelete(order._id);
+
+    return NextResponse.json({
+      message: "Order deleted successfully!",
+      deletedBillId,
+      success: true,
+      status: 200,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      message: "Internal Server Error",
+      error,
+      status: 500,
+      success: false,
+    });
+  }
+}
+
 //Fetch all orders...
 export async function GET() {
   try {

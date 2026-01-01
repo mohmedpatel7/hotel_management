@@ -113,6 +113,30 @@ export const updateOrderStatus = createAsyncThunk<
   }
 });
 
+// Delete order by ID
+export const deleteOrder = createAsyncThunk<
+  { orderId: string; deletedBillId: string | null },
+  string,
+  { rejectValue: string }
+>("order/deleteOrder", async (orderId, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`/api/order?orderId=${orderId}`, {
+      method: "DELETE",
+      headers: {
+        weater_token: localStorage.getItem("weater_token") || "",
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      return rejectWithValue(error.message || "Failed to delete order");
+    }
+    const data = await response.json();
+    return { orderId, deletedBillId: data.deletedBillId ?? null };
+  } catch (error) {
+    return rejectWithValue("Network error");
+  }
+});
+
 const orderSlice = createSlice({
   name: "order",
   initialState,
@@ -174,6 +198,24 @@ const orderSlice = createSlice({
       .addCase(updateOrderStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to update order status";
+      })
+      // Delete order cases
+      .addCase(deleteOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = state.orders.filter(
+          (o) => o._id !== action.payload.orderId
+        );
+        if (state.currentOrder?._id === action.payload.orderId) {
+          state.currentOrder = null;
+        }
+      })
+      .addCase(deleteOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to delete order";
       });
   },
 });
