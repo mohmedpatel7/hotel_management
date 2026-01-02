@@ -204,11 +204,19 @@ export async function DELETE(req: NextRequest) {
       });
     }
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById({ _id: orderId });
     if (!order) {
       return NextResponse.json({
         message: "Order not found!",
         status: 404,
+        success: false,
+      });
+    }
+
+    if (order.status !== "pending") {
+      return NextResponse.json({
+        message: "Only pending orders can be deleted!",
+        status: 400,
         success: false,
       });
     }

@@ -30,6 +30,7 @@ export const typeDefs = `
         weater:Weater!    
         tableNo:Int!       
         status:String!    
+        createdAt:Date!  
     }
 
     type Bill {
@@ -62,7 +63,7 @@ import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import { GraphQLScalarType, Kind } from "graphql";
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 
 // Export resolvers: functions that actually fetch the data for each field
 export const resolvers = {
@@ -176,7 +177,9 @@ export const resolvers = {
     getBill: async () => {
       try {
         connectDB();
-        return await Bill.find();
+        return await Bill.find().sort({
+          createdAt: -1,
+        });
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }
@@ -187,7 +190,11 @@ export const resolvers = {
     ) => {
       try {
         connectDB();
-        return await Order.find({ weaterId: new Types.ObjectId(weaterId) });
+        return await Order.find({
+          weaterId: new Types.ObjectId(weaterId),
+        }).sort({
+          createdAt: -1,
+        });
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }

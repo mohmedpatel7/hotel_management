@@ -6,10 +6,15 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { jwtDecode } from "jwt-decode";
+import { deleteOrder } from "@/Redux/slices/Order";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/Redux/store/store";
+import { Trash2 } from "lucide-react";
 
 const GET_ORDERS_BY_WAITER_ID = gql`
   query GetOrdersByWaiterId($weaterId: String!) {
     getOrdersByWaiterId(weaterId: $weaterId) {
+      _id
       weater {
         name
         userId
@@ -24,6 +29,7 @@ const GET_ORDERS_BY_WAITER_ID = gql`
       quntity
       status
       tableNo
+      createdAt
     }
   }
 `;
@@ -35,6 +41,7 @@ type TokenPayload = {
 };
 
 type OrderHistoryItem = {
+  _id: string;
   weater: {
     name: string;
     userId: string;
@@ -49,11 +56,13 @@ type OrderHistoryItem = {
   quntity: string;
   status: "pending" | "completed" | "cancelled";
   tableNo: number;
+  createdAt: Date;
 };
 
 export default function OrderHistory() {
   const router = useRouter();
   const { showToast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
 
   const [weaterId, setWeaterId] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "ok" | "redirect">(
@@ -62,6 +71,11 @@ export default function OrderHistory() {
   const [statusFilter, setStatusFilter] = useState<
     "pending" | "completed" | "cancelled"
   >("pending");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderHistoryItem | null>(
+    null
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("weater_token");
@@ -85,7 +99,6 @@ export default function OrderHistory() {
       setWeaterId(id);
       setAuthStatus("ok");
     } catch (err) {
-      console.error(err);
       showToast("Invalid token! Please sign in again.", "error");
       router.replace("/");
       setAuthStatus("redirect");
@@ -105,6 +118,43 @@ export default function OrderHistory() {
   const refreshData = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const openDeleteModal = useCallback((order: OrderHistoryItem) => {
+    setSelectedOrder(order);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setSelectedOrder(null);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!selectedOrder || deletingId) return;
+
+    const orderId = selectedOrder._id;
+    setDeletingId(orderId);
+    try {
+      await dispatch(deleteOrder(orderId)).unwrap();
+      showToast("Order deleted successfully!", "success");
+      await refetch();
+      closeDeleteModal();
+    } catch (err) {
+      showToast(
+        typeof err === "string" ? err : "Failed to delete order",
+        "error"
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }, [
+    closeDeleteModal,
+    deletingId,
+    dispatch,
+    refetch,
+    selectedOrder,
+    showToast,
+  ]);
 
   if (authStatus === "checking") {
     return (
@@ -228,7 +278,9 @@ export default function OrderHistory() {
 
               return (
                 <div
-                  key={`${order.food?.foodName ?? "order"}-${index}`}
+                  key={
+                    order._id || `${order.food?.foodName ?? "order"}-${index}`
+                  }
                   className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
                 >
                   <div
@@ -242,6 +294,12 @@ export default function OrderHistory() {
                         Table {order.tableNo} • {order.food?.category} •{" "}
                         {order.food?.type}
                       </div>
+                      <div className="text-xs text-white/90 truncate">
+                        Date:{" "}
+                        {order.createdAt
+                          ? new Date(order.createdAt).toDateString()
+                          : "N/A"}
+                      </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <div className="text-xs bg-black/20 px-2.5 py-0.5 rounded-full text-white">
@@ -252,6 +310,20 @@ export default function OrderHistory() {
                       >
                         {order.status}
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => openDeleteModal(order)}
+                        disabled={deletingId === order._id}
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/30 bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Delete order"
+                        title="Delete order"
+                      >
+                        {deletingId === order._id ? (
+                          <div className="h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -302,6 +374,42 @@ export default function OrderHistory() {
                 </div>
               );
             })}
+          </div>
+        )}
+        {deleteModalOpen && selectedOrder && (
+          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+              <h3 className="text-xl font-bold text-red-600 mb-4">
+                Confirm Delete
+              </h3>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this order for{" "}
+                <span className="font-semibold">
+                  {selectedOrder.food.foodName}
+                </span>{" "}
+                on table {selectedOrder.tableNo}?
+              </p>
+              <div className="mt-8 flex justify-end gap-4">
+                <button
+                  onClick={closeDeleteModal}
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deletingId === selectedOrder._id}
+                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                  type="button"
+                >
+                  {deletingId === selectedOrder._id && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  )}
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

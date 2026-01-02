@@ -93,6 +93,8 @@ const Dashboard = () => {
     );
   if (!dashboard) return null;
 
+  console.log(dashboard);
+
   const {
     monthlyRevenue = 0,
     todaysOrdersCount = 0,
