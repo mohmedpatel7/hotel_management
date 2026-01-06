@@ -96,7 +96,7 @@ export const getProfile = createAsyncThunk(
   "cook/getProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${BASE_URL}/profile`, {
+      const response = await fetch(`${BASE_URL}/auth/signup`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

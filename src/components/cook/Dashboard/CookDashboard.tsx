@@ -5,6 +5,9 @@ import { useQuery } from "@apollo/client/react";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import { useDispatch } from "react-redux";
+import { updateOrderStatus } from "@/Redux/slices/Order";
+import type { AppDispatch } from "@/Redux/store/store";
 
 const GET_ORDERS_FOR_COOK = gql`
   query GetOrdersForCook {
@@ -28,7 +31,7 @@ const GET_ORDERS_FOR_COOK = gql`
 type Order = {
   _id: string;
   quntity: number;
-  status: string;
+  status: "pending" | "completed" | "cancelled";
   createdAt: string;
   tableNo: number;
   food: {
@@ -43,10 +46,18 @@ type Order = {
 export default function CookDashboard() {
   const router = useRouter();
   const { showToast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
 
   const [statusFilter, setStatusFilter] = useState<
     "pending" | "completed" | "cancelled"
   >("pending");
+
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState<
+    "pending" | "completed" | "cancelled"
+  >("pending");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [isCook, setIsCook] = useState(false);
   useEffect(() => {
@@ -65,6 +76,49 @@ export default function CookDashboard() {
   const refreshData = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const openStatusModal = useCallback((order: Order) => {
+    setSelectedOrder(order);
+    setNewStatus(order.status);
+    setIsModalOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
+  }, []);
+
+  const handleUpdateStatus = useCallback(async () => {
+    if (!selectedOrder || isUpdating) return;
+
+    setIsUpdating(true);
+    try {
+      await dispatch(
+        updateOrderStatus({ id: selectedOrder._id, status: newStatus })
+      ).unwrap();
+      showToast("Order status updated successfully", "success");
+      await refetch();
+      closeModal();
+    } catch (err) {
+      const message =
+        typeof err === "string"
+          ? err
+          : err instanceof Error
+          ? err.message
+          : "Failed to update order status";
+      showToast(message, "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [
+    closeModal,
+    dispatch,
+    newStatus,
+    refetch,
+    selectedOrder,
+    showToast,
+    isUpdating,
+  ]);
 
   const normalizeImageUrl = (value: unknown) => {
     if (typeof value !== "string") return "";
@@ -205,6 +259,11 @@ export default function CookDashboard() {
                               : "N/A"}
                           </div>
                         </div>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/90 ${statusClass}`}
+                        >
+                          {order.status}
+                        </span>
                       </div>
 
                       <div className="p-2">
@@ -238,10 +297,79 @@ export default function CookDashboard() {
                             </div>
                           </div>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => openStatusModal(order)}
+                          className="mt-3 w-full px-3 py-2 rounded-lg text-sm font-medium border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 transition-colors"
+                        >
+                          Update Status
+                        </button>
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {isModalOpen && selectedOrder && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-sm">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+                  <h2 className="text-xl font-semibold text-orange-500 mb-1">
+                    Update Order Status
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {selectedOrder.food?.foodName} • Table{" "}
+                    {selectedOrder.tableNo}
+                  </p>
+
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700">
+                      Select new status:
+                    </p>
+                    <div className="flex gap-3">
+                      {(["pending", "completed", "cancelled"] as const).map(
+                        (status) => (
+                          <button
+                            key={status}
+                            onClick={() => setNewStatus(status)}
+                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border transition-all duration-200 ${
+                              newStatus === status
+                                ? "text-white " +
+                                  (status === "pending"
+                                    ? "bg-yellow-500 border-yellow-600"
+                                    : status === "completed"
+                                    ? "bg-green-500 border-green-600"
+                                    : "bg-red-500 border-red-600")
+                                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                            }`}
+                          >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end gap-4">
+                    <button
+                      onClick={closeModal}
+                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateStatus}
+                      disabled={isUpdating}
+                      className="px-4 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                    >
+                      {isUpdating && (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      )}
+                      Update
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

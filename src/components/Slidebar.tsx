@@ -55,6 +55,16 @@ const Sidebar = () => {
     }
   }, [pathname]);
 
+  const handleProfilenavi = () => {
+    if (isCook) {
+      router.push("/cookProfile");
+    } else if (isWaiter) {
+      router.push("/waiterProfile");
+    } else if (isManger) {
+      router.push("/managerProfile");
+    }
+  };
+
   const menuItems = [
     { path: "/", name: "Home", icon: <FaHome size={18} /> },
     {
@@ -260,13 +270,33 @@ const Sidebar = () => {
               </button>
               {showProfileMenu && (
                 <div className="absolute bottom-full left-0 w-full mb-2 bg-[#2d2927] rounded-xl shadow-lg overflow-hidden">
-                  <Link
-                    href="/managerProfile"
-                    onClick={handleLinkClick}
-                    className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
-                  >
-                    Profile
-                  </Link>
+                  {isManger && (
+                    <Link
+                      href="/managerProfile"
+                      onClick={handleLinkClick}
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                    >
+                      Profile
+                    </Link>
+                  )}
+                  {isCook && (
+                    <Link
+                      href="/cookProfile"
+                      onClick={handleLinkClick}
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                    >
+                      Profile
+                    </Link>
+                  )}
+                  {isWaiter && (
+                    <Link
+                      href="/waiterProfile"
+                      onClick={handleLinkClick}
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                    >
+                      Profile
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       localStorage.removeItem("manager_token");
@@ -288,7 +318,7 @@ const Sidebar = () => {
           ) : (
             <div className="space-y-2">
               <Link
-                href="/signinLandPage"
+                href="/signinLandPage "
                 onClick={handleLinkClick}
                 className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:opacity-90 transition-opacity text-sm"
               >

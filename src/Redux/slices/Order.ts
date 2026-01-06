@@ -99,6 +99,7 @@ export const updateOrderStatus = createAsyncThunk<
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        cook_token: localStorage.getItem("cook_token") || "",
       },
       body: JSON.stringify({ status }),
     });

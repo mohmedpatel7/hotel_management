@@ -85,7 +85,7 @@ export const getWaiterProfile = createAsyncThunk(
   "waiter/profile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/waiter/profile", {
+      const response = await fetch("/api/weater/auth/signup", {
         headers: {
           weater_token: localStorage.getItem("weater_token") || "",
         },

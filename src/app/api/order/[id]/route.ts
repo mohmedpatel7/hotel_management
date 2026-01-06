@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import Order from "@/lib/schema/Order";
+import jwt from "jsonwebtoken";
 
 // get the particular order details
 export async function GET(
@@ -65,6 +66,21 @@ export async function PUT(
       });
     }
 
+    const token =
+      req.headers.get("cook_token") ?? req.headers.get("weater_token");
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization Failed !" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SIGN!);
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { status } = body;
 
@@ -90,8 +106,19 @@ export async function PUT(
     order.status = status;
     await order.save();
 
+    const response = {
+      _id: order._id,
+      foodId: order.foodId,
+      quntity: order.quntity,
+      price: order.price,
+      weaterId: order.weaterId,
+      tableNo: order.tableNo,
+      status: order.status,
+    };
+
     return NextResponse.json({
       message: "Order status updated successfully",
+      response,
       status: 200,
       success: true,
     });
