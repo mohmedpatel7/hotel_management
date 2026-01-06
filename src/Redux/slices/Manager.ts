@@ -86,6 +86,7 @@ export const signInManager = createAsyncThunk(
         };
         return rejectWithValue(error);
       }
+
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {
@@ -154,7 +155,6 @@ export const getManagerProfile = createAsyncThunk(
         return rejectWithValue(error);
       }
 
-      console.log(data);
       return data;
     } catch (error) {
       const errorMessage: ErrorType = {

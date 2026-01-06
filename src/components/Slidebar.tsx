@@ -95,6 +95,14 @@ const Sidebar = () => {
     },
   ];
 
+  const cookMenuItems = [
+    {
+      path: "/cookDashboard",
+      name: "Dashboard",
+      icon: <FaChartBar size={18} />,
+    },
+  ];
+
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
 
@@ -195,6 +203,30 @@ const Sidebar = () => {
             <ul className="space-y-2 mt-2">
               {isWaiter &&
                 waiterMenuItems.map((item) => (
+                  <li key={item.path}>
+                    <Link
+                      href={item.path}
+                      onClick={handleLinkClick}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                          ${
+                            pathname === item.path
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
+                          }`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span className="font-medium text-sm">{item.name}</span>
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </nav>
+
+          {/* Navigation for cook */}
+          <nav>
+            <ul className="space-y-2 mt-2">
+              {isCook &&
+                cookMenuItems.map((item) => (
                   <li key={item.path}>
                     <Link
                       href={item.path}

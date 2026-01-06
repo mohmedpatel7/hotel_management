@@ -34,7 +34,6 @@ export const loginWaiter = createAsyncThunk(
       const data = await response.json();
 
       if (!data.success) {
-        console.log(data.message);
         return rejectWithValue(data.message);
       }
 

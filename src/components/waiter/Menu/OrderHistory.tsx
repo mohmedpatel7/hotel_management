@@ -203,216 +203,225 @@ export default function OrderHistory() {
   const filteredOrders = orders.filter((o) => o.status === statusFilter);
 
   return (
-    <section
-      className="min-h-screen px-6 py-10"
-      style={{ backgroundColor: "#ffffff" }}
-    >
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
-          Order History
-        </h1>
+    authStatus === "ok" && (
+      <section
+        className="min-h-screen px-6 py-10"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
+            Order History
+          </h1>
 
-        <div className="mb-6 flex flex-wrap gap-2 items-center">
-          {(
-            [
-              { key: "pending", label: "Pending", count: pendingOrders.length },
-              {
-                key: "completed",
-                label: "Completed",
-                count: completedOrders.length,
-              },
-              {
-                key: "cancelled",
-                label: "Cancelled",
-                count: cancelledOrders.length,
-              },
-            ] as const
-          ).map((item) => (
+          <div className="mb-6 flex flex-wrap gap-2 items-center">
+            {(
+              [
+                {
+                  key: "pending",
+                  label: "Pending",
+                  count: pendingOrders.length,
+                },
+                {
+                  key: "completed",
+                  label: "Completed",
+                  count: completedOrders.length,
+                },
+                {
+                  key: "cancelled",
+                  label: "Cancelled",
+                  count: cancelledOrders.length,
+                },
+              ] as const
+            ).map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setStatusFilter(item.key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  statusFilter === item.key
+                    ? "bg-orange-500 text-white border-orange-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {item.label} ({item.count})
+              </button>
+            ))}
+
             <button
-              key={item.key}
-              onClick={() => setStatusFilter(item.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                statusFilter === item.key
-                  ? "bg-orange-500 text-white border-orange-500"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
+              onClick={refreshData}
+              className="ml-auto px-4 py-2 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
             >
-              {item.label} ({item.count})
+              Refresh
             </button>
-          ))}
-
-          <button
-            onClick={refreshData}
-            className="ml-auto px-4 py-2 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-          >
-            Refresh
-          </button>
-        </div>
-
-        {orders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
-            No orders found.
           </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
-            No {statusFilter} orders found.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.map((order, index) => {
-              const imageUrl = normalizeImageUrl(order.food?.foodImage);
 
-              const headerClass =
-                order.status === "completed"
-                  ? "from-green-400 via-green-500 to-green-600"
-                  : order.status === "cancelled"
-                  ? "from-red-400 via-red-500 to-red-600"
-                  : "from-orange-400 via-orange-500 to-orange-600";
+          {orders.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
+              No orders found.
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
+              No {statusFilter} orders found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredOrders.map((order, index) => {
+                const imageUrl = normalizeImageUrl(order.food?.foodImage);
 
-              const statusClass =
-                order.status === "pending"
-                  ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                  : order.status === "completed"
-                  ? "bg-green-100 text-green-800 border-green-300"
-                  : "bg-red-100 text-red-800 border-red-300";
+                const headerClass =
+                  order.status === "completed"
+                    ? "from-green-400 via-green-500 to-green-600"
+                    : order.status === "cancelled"
+                    ? "from-red-400 via-red-500 to-red-600"
+                    : "from-orange-400 via-orange-500 to-orange-600";
 
-              return (
-                <div
-                  key={
-                    order._id || `${order.food?.foodName ?? "order"}-${index}`
-                  }
-                  className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-                >
+                const statusClass =
+                  order.status === "pending"
+                    ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                    : order.status === "completed"
+                    ? "bg-green-100 text-green-800 border-green-300"
+                    : "bg-red-100 text-red-800 border-red-300";
+
+                return (
                   <div
-                    className={`bg-gradient-to-r ${headerClass} px-4 py-3 flex items-start justify-between gap-3`}
+                    key={
+                      order._id || `${order.food?.foodName ?? "order"}-${index}`
+                    }
+                    className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
                   >
-                    <div className="text-white min-w-0">
-                      <div className="text-base font-semibold truncate">
-                        {order.food?.foodName}
-                      </div>
-                      <div className="text-xs text-white/90 truncate">
-                        Table {order.tableNo} • {order.food?.category} •{" "}
-                        {order.food?.type}
-                      </div>
-                      <div className="text-xs text-white/90 truncate">
-                        Date:{" "}
-                        {order.createdAt
-                          ? new Date(order.createdAt).toDateString()
-                          : "N/A"}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <div className="text-xs bg-black/20 px-2.5 py-0.5 rounded-full text-white">
-                        ₹{order.price}
-                      </div>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/90 ${statusClass}`}
-                      >
-                        {order.status}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openDeleteModal(order)}
-                        disabled={deletingId === order._id}
-                        className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/30 bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Delete order"
-                        title="Delete order"
-                      >
-                        {deletingId === order._id ? (
-                          <div className="h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-2">
-                    <div className="relative w-3/4 mx-auto pt-[75%] rounded-lg bg-gray-100 overflow-hidden">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={order.food?.foodName ?? "Food"}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
-                          No Image
+                    <div
+                      className={`bg-gradient-to-r ${headerClass} px-4 py-3 flex items-start justify-between gap-3`}
+                    >
+                      <div className="text-white min-w-0">
+                        <div className="text-base font-semibold truncate">
+                          {order.food?.foodName}
                         </div>
-                      )}
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-700">
-                      <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                        <div className="text-gray-500 text-[11px]">
-                          Quantity
-                        </div>
-                        <div className="font-semibold">{order.quntity}</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                        <div className="text-gray-500 text-[11px]">Waiter</div>
-                        <div className="font-semibold truncate">
-                          {order.weater?.name}
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                        <div className="text-gray-500 text-[11px]">
-                          Category
-                        </div>
-                        <div className="font-semibold truncate">
-                          {order.food?.category}
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                        <div className="text-gray-500 text-[11px]">Type</div>
-                        <div className="font-semibold truncate">
+                        <div className="text-xs text-white/90 truncate">
+                          Table {order.tableNo} • {order.food?.category} •{" "}
                           {order.food?.type}
                         </div>
+                        <div className="text-xs text-white/90 truncate">
+                          Date:{" "}
+                          {order.createdAt
+                            ? new Date(order.createdAt).toDateString()
+                            : "N/A"}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <div className="text-xs bg-black/20 px-2.5 py-0.5 rounded-full text-white">
+                          ₹{order.price}
+                        </div>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/90 ${statusClass}`}
+                        >
+                          {order.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => openDeleteModal(order)}
+                          disabled={deletingId === order._id}
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/30 bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Delete order"
+                          title="Delete order"
+                        >
+                          {deletingId === order._id ? (
+                            <div className="h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-2">
+                      <div className="relative w-3/4 mx-auto pt-[75%] rounded-lg bg-gray-100 overflow-hidden">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={order.food?.foodName ?? "Food"}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                            No Image
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-700">
+                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
+                          <div className="text-gray-500 text-[11px]">
+                            Quantity
+                          </div>
+                          <div className="font-semibold">{order.quntity}</div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
+                          <div className="text-gray-500 text-[11px]">
+                            Waiter
+                          </div>
+                          <div className="font-semibold truncate">
+                            {order.weater?.name}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
+                          <div className="text-gray-500 text-[11px]">
+                            Category
+                          </div>
+                          <div className="font-semibold truncate">
+                            {order.food?.category}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
+                          <div className="text-gray-500 text-[11px]">Type</div>
+                          <div className="font-semibold truncate">
+                            {order.food?.type}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+
+          {deleteModalOpen && selectedOrder && (
+            <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+                <h3 className="text-xl font-bold text-red-600 mb-4">
+                  Confirm Delete
+                </h3>
+                <p className="text-gray-700 mb-6">
+                  Are you sure you want to delete this order for{" "}
+                  <span className="font-semibold">
+                    {selectedOrder.food.foodName}
+                  </span>{" "}
+                  on table {selectedOrder.tableNo}?
+                </p>
+                <div className="mt-8 flex justify-end gap-4">
+                  <button
+                    onClick={closeDeleteModal}
+                    className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    disabled={deletingId === selectedOrder._id}
+                    className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                    type="button"
+                  >
+                    {deletingId === selectedOrder._id && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    )}
+                    Delete
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        )}
-        {deleteModalOpen && selectedOrder && (
-          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-              <h3 className="text-xl font-bold text-red-600 mb-4">
-                Confirm Delete
-              </h3>
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete this order for{" "}
-                <span className="font-semibold">
-                  {selectedOrder.food.foodName}
-                </span>{" "}
-                on table {selectedOrder.tableNo}?
-              </p>
-              <div className="mt-8 flex justify-end gap-4">
-                <button
-                  onClick={closeDeleteModal}
-                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                  type="button"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={deletingId === selectedOrder._id}
-                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
-                  type="button"
-                >
-                  {deletingId === selectedOrder._id && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  )}
-                  Delete
-                </button>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </section>
+          )}
+        </div>
+      </section>
+    )
   );
 }

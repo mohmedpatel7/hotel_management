@@ -7,9 +7,10 @@ interface CookUser {
 }
 
 interface CookState {
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
   user: CookUser | null;
+  cookToken: string | null;
 }
 
 interface SignInData {
@@ -22,6 +23,13 @@ interface SignUpData {
   password: string;
   name: string;
 }
+
+const initialState: CookState = {
+  loading: false,
+  error: null,
+  user: null,
+  cookToken: null,
+};
 
 const BASE_URL = "/api/cook";
 
@@ -37,11 +45,15 @@ export const signInCook = createAsyncThunk(
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData);
-      }
       const cook = await response.json();
+
+      if (!response.ok) {
+        const message =
+          (cook as { message?: string })?.message ||
+          "Failed to sign in. Please try again.";
+        return rejectWithValue(message);
+      }
+
       return cook;
     } catch (error) {
       if (error instanceof Error) {
@@ -110,21 +122,16 @@ export const getProfile = createAsyncThunk(
   }
 );
 
-const initialState: CookState = {
-  isLoading: false,
-  error: null,
-  user: null,
-};
-
 const cookSlice = createSlice({
   name: "cook",
   initialState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
     logout: (state) => {
       state.user = null;
+      state.error = null;
+      state.cookToken = null;
+    },
+    clearError: (state) => {
       state.error = null;
     },
   },
@@ -132,55 +139,56 @@ const cookSlice = createSlice({
     // Sign In Cases
     builder
       .addCase(signInCook.pending, (state) => {
-        state.isLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(signInCook.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         if (action.payload.success) {
-          state.user = action.payload;
+          console.log("Cook token", action.payload.cook_token);
+          state.cookToken = action.payload.cook_token;
           state.error = null;
           localStorage.setItem("cook_token", action.payload.cook_token);
         } else {
-          state.user = null;
+          state.cookToken = null;
           state.error = action.payload.message || "Authentication failed";
           localStorage.removeItem("cook_token");
         }
       })
       .addCase(signInCook.rejected, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.error = action.payload as string;
       });
 
     // Sign Up Cases
     builder
       .addCase(signUpCook.pending, (state) => {
-        state.isLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(signUpCook.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.user = action.payload;
         state.error = null;
       })
       .addCase(signUpCook.rejected, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.error = action.payload as string;
       });
 
     // Get Profile Cases
     builder
       .addCase(getProfile.pending, (state) => {
-        state.isLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.user = action.payload;
         state.error = null;
       })
       .addCase(getProfile.rejected, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.error = action.payload as string;
       });
   },

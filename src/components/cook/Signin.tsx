@@ -6,6 +6,7 @@ import { signInCook } from "@/Redux/slices/Cook";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/Redux/store/store";
 import { useToast } from "../Toast";
+import { useRouter } from "next/navigation";
 
 const Signin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const Signin: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
   const { showToast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -67,8 +69,7 @@ const Signin: React.FC = () => {
 
       if (response.success === true && response.cook_token) {
         showToast(response.message || "Signin Successfully.", "success");
-        // Redirect to cook dashboard or appropriate page
-        window.location.href = "/dashboardCook";
+        router.push("/cookDashboard");
       } else {
         showToast(
           response.message || "Signin failed. Please try again.",

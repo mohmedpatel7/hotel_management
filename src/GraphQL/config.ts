@@ -52,6 +52,7 @@ export const typeDefs = `
         getOrder: [Order!]! 
         getBill: [Bill!]!   
         getOrdersByWaiterId(weaterId: String!): [Order!]!
+        getOrdersForCook: [Order!]!
     }
 `;
 
@@ -173,6 +174,7 @@ export const resolvers = {
         throw new Error("Internal server error", error as ErrorOptions);
       }
     },
+
     // Return every bill document
     getBill: async () => {
       try {
@@ -184,6 +186,8 @@ export const resolvers = {
         throw new Error("Internal server error", error as ErrorOptions);
       }
     },
+
+    // Return every order document for a specific waiter
     getOrdersByWaiterId: async (
       _: undefined,
       { weaterId }: { weaterId: string }
@@ -198,6 +202,12 @@ export const resolvers = {
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }
+    },
+
+    //Return orders for cook
+    getOrdersForCook: async () => {
+      connectDB();
+      return await Order.find();
     },
   },
 };
