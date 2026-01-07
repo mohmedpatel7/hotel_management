@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Order from "@/lib/schema/Order";
 import { connectDB } from "@/lib/db/dbConnection";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
 
 /**
  * POST /api/reports/revenue
@@ -31,8 +32,6 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   try {
-    connectDB();
-
     const token = req.headers.get("manager_token");
     if (!token) {
       return NextResponse.json(
@@ -69,7 +68,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await mongoose.connect(process.env.MONGODB_URI!);
+    //Setting up cache key.
+    const cacheKey = `revenue:${fromDate.toISOString()}-${toDate.toISOString()}`;
+    // 1️⃣ CHECK REDIS FIRST
+    const cached = await client.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(
+        { totalRevenue: cached, source: "redis" },
+        { status: 200 }
+      );
+    }
+
+    connectDB();
 
     const totalRevenue = await Order.aggregate([
       {
@@ -88,6 +98,9 @@ export async function POST(req: NextRequest) {
         },
       },
     ]);
+
+    // 2️⃣ Stroring on redis.
+    await client.set(cacheKey, totalRevenue[0]?.total ?? 0, { ex: 1800 });
 
     return NextResponse.json(
       { totalRevenue: totalRevenue[0]?.total ?? 0 },

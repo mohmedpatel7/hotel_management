@@ -4,10 +4,22 @@ import Order from "@/lib/schema/Order";
 import Cook from "@/lib/schema/Cook";
 import Weater from "@/lib/schema/Weater";
 import Food from "@/lib/schema/FoodList";
+import { client } from "@/lib/Redis/client";
 
 export async function GET() {
   try {
-    await connectDB();
+    // 1️⃣ Check Redis first
+    const cacheKey = "dashboard:stats";
+    const cachedData = await client.get(cacheKey);
+
+    if (cachedData) {
+      return NextResponse.json({
+        ...cachedData,
+        source: "redis",
+      });
+    }
+
+    connectDB();
 
     // Calculate last 30 days
     const today = new Date();
@@ -25,6 +37,7 @@ export async function GET() {
       today.getMonth(),
       today.getDate() + 1
     );
+
     const todaysOrdersCount = await Order.countDocuments({
       createdAt: { $gte: startOfDay, $lt: endOfDay },
     });
@@ -72,12 +85,20 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({
+    const responseData = {
       monthlyRevenue,
       todaysOrdersCount,
       totalWaiters,
       totalCooks,
       famousFoods,
+    };
+
+    // 3️⃣ Store in Redis (TTL: 60 sec)
+    await client.set(cacheKey, responseData, { ex: 3600 });
+
+    return NextResponse.json({
+      ...responseData,
+      source: "mongodb",
     });
   } catch (error) {
     return NextResponse.json(

@@ -130,15 +130,20 @@ const FoodDetailsPage = () => {
     );
   }
 
-  if (loading && !selectedFood) {
+  if (loading)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-gray-700 text-lg">Loading…</p>
+      <section
+        className="min-h-screen px-6 py-10"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700">Loading...</p>
+          </div>
         </div>
-      </div>
+      </section>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

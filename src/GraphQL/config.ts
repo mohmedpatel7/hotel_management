@@ -65,6 +65,7 @@ import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import { GraphQLScalarType, Kind } from "graphql";
 import { Types } from "mongoose";
+import { client } from "@/lib/Redis/client";
 
 // Export resolvers: functions that actually fetch the data for each field
 export const resolvers = {
@@ -73,17 +74,24 @@ export const resolvers = {
     name: "Date",
     description: "Custom Date scalar type",
 
-    // Convert Date object to ISO string when sending to client
     serialize(value) {
-      return value instanceof Date ? value.toISOString() : null;
+      // ✅ MongoDB Date
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+
+      // ✅ Redis ISO string
+      if (typeof value === "string") {
+        return value;
+      }
+
+      return null;
     },
 
-    // Convert incoming value (string/number) to Date object
     parseValue(value) {
-      return new Date(value as string | number | Date);
+      return new Date(value as string);
     },
 
-    // Convert AST string literal to Date object
     parseLiteral(ast) {
       return ast.kind === Kind.STRING ? new Date(ast.value) : null;
     },
@@ -178,10 +186,22 @@ export const resolvers = {
     // Return every bill document
     getBill: async () => {
       try {
+        const cacheKey = "billList:all";
+        // 1.Check Cache first.
+        const billListCache = await client.get(cacheKey);
+        if (billListCache) {
+          return billListCache;
+        }
+
         connectDB();
-        return await Bill.find().sort({
+        const billList = await Bill.find().sort({
           createdAt: -1,
         });
+
+        // 2. Store in redis cache.
+        await client.set(cacheKey, billList, { ex: 3600 });
+
+        return billList;
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }
@@ -193,12 +213,25 @@ export const resolvers = {
       { weaterId }: { weaterId: string }
     ) => {
       try {
+        //Setting up key
+        const cacheKey = `ordersByWaiterId:${weaterId}`;
+        // 1.Check Cache first.
+        const ordersCache = await client.get(cacheKey);
+        if (ordersCache) {
+          return ordersCache;
+        }
+
         connectDB();
-        return await Order.find({
+        const orders = await Order.find({
           weaterId: new Types.ObjectId(weaterId),
         }).sort({
           createdAt: -1,
         });
+
+        // 2. Store in redis cache.
+        await client.set(cacheKey, orders, { ex: 3600 });
+
+        return orders;
       } catch (error) {
         throw new Error("Internal server error", error as ErrorOptions);
       }

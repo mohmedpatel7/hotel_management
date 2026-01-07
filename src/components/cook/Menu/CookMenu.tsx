@@ -60,7 +60,7 @@ const MenuList: React.FC = () => {
     "half" | "full" | ""
   >("");
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
-  const [weaterId, setWeaterId] = useState<string | null>(null);
+  const [cookToken, setcookToken] = useState<string | null>(null);
 
   const { showToast } = useToast();
 
@@ -91,11 +91,11 @@ const MenuList: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("weater_token");
+      const token = localStorage.getItem("cook_token");
       if (token) {
         try {
           const decodedToken: { id: string } = jwtDecode(token);
-          setWeaterId(decodedToken.id);
+          setcookToken(decodedToken.id);
         } catch (error) {
           console.error("Error decoding token:", error);
         }
@@ -112,52 +112,6 @@ const MenuList: React.FC = () => {
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, typeof filteredItems>);
-
-  const calculatePrice = () => {
-    if (!selectedFoodItem || !selectedQuantity) return 0;
-    if (selectedQuantity === "half") {
-      return selectedFoodItem.halfPrice || 0;
-    } else if (selectedQuantity === "full") {
-      return selectedFoodItem.fullPrice || 0;
-    }
-    return 0;
-  };
-
-  const handlePlaceOrder = async () => {
-    if (!selectedFoodItem || !selectedQuantity || !selectedTable || !weaterId) {
-      showToast("Please select food, quantity, and table.", "error");
-      return;
-    }
-
-    const price = calculatePrice();
-    if (price === 0) {
-      showToast("Invalid price for selected quantity.", "error");
-      return;
-    }
-
-    try {
-      await dispatch(
-        createOrder({
-          foodId: selectedFoodItem._id,
-          quntity: selectedQuantity,
-          price: price,
-          weaterId: weaterId,
-          tableNo: parseInt(selectedTable),
-        })
-      ).unwrap();
-      showToast("Order placed successfully!", "success");
-      setIsOrderModalOpen(false);
-      setSelectedFoodItem(null);
-      setSelectedQuantity("");
-      setSelectedTable(null);
-    } catch (err: unknown) {
-      showToast(
-        (err as { message?: string }).message ||
-          "Failed to place order. Please try again.",
-        "error"
-      );
-    }
-  };
 
   if (loading)
     return (
@@ -450,7 +404,6 @@ const MenuList: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={handlePlaceOrder}
                 disabled={orderLoading}
                 className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
               >

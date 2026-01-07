@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/dbConnection";
 import FoodList from "@/lib/schema/FoodList";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
 
 //Get details of perticular food..
 export async function GET(
@@ -9,13 +10,31 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: foodId } = await params;
+    //Setting up key
+    const cacheKey = `food:${foodId}`;
+    const cachedFood = await client.get(cacheKey);
+    if (cachedFood) {
+      return NextResponse.json(
+        {
+          message: "Food details fetched successfully!",
+          food: cachedFood,
+        },
+        { status: 200 }
+      );
+    }
+
     connectDB();
 
-    const { id: foodId } = await params;
     const food = await FoodList.findById({ _id: foodId });
     if (!food) {
       return NextResponse.json({ message: "Food not found!" }, { status: 404 });
     }
+    //Setting up cache
+    await client.set(cacheKey, JSON.stringify(food), {
+      ex: 1200,
+    });
+
     return NextResponse.json(
       { message: "Food details fetched successfully!", food },
       { status: 200 }

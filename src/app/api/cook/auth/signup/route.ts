@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db/dbConnection";
 import bcrypt from "bcryptjs";
 import Cook from "@/lib/schema/Cook";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -98,6 +99,20 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = decoded.id;
+    const cacheKey = `cook:${userId}`;
+
+    //1. Check Cache.
+    const cacheCook = await client.get(cacheKey);
+    if (cacheCook) {
+      return NextResponse.json({
+        success: true,
+        status: 200,
+        message: "Cook profile fetched successfully !",
+        response: cacheCook,
+        source: "redis",
+      });
+    }
+
     const cook = await Cook.findById({ _id: userId }).select("-password");
     if (!cook) {
       return NextResponse.json({
@@ -106,10 +121,14 @@ export async function GET(req: NextRequest) {
         message: "Cook not found !",
       });
     }
+
     const response = {
       name: cook.name,
       userId: cook.userId,
     };
+
+    // 2. Store in redis cache.
+    await client.set(cacheKey, response, { ex: 3600 });
 
     return NextResponse.json({
       success: true,

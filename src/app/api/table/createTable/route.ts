@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Table from "@/lib/schema/Table";
 import jwt from "jsonwebtoken";
 import { connectDB } from "@/lib/db/dbConnection";
+import { client } from "@/lib/Redis/client";
 
 //Create table...
 export async function POST(req: NextRequest) {
@@ -72,15 +73,35 @@ export async function POST(req: NextRequest) {
 //Get table detailes...
 export async function GET() {
   try {
-    connectDB();
-    const tables = await Table.find();
-    if (!tables) {
+    const cacheKey = "tables:all";
+
+    // 1️⃣ Check Redis FIRST
+    const cachedTables = await client.get(cacheKey);
+    if (cachedTables) {
       return NextResponse.json({
-        message: "No tables found",
-        status: 404,
-        success: false,
-        tables,
+        message: "Tables fetched successfully",
+        tables: cachedTables,
+        status: 200,
+        success: true,
+        source: "redis",
       });
+    }
+
+    connectDB();
+
+    // 2️⃣ Fetch from MongoDB
+    const tables = await Table.find();
+
+    if (tables.length === 0) {
+      return NextResponse.json(
+        {
+          message: "No tables found",
+          status: 404,
+          success: false,
+          tables: [],
+        },
+        { status: 404 }
+      );
     }
 
     const tableDetails = tables.map((table) => ({
@@ -89,18 +110,25 @@ export async function GET() {
       number: table.number,
     }));
 
+    // 3️⃣ Store in Redis (TTL 30 sec)
+    await client.set(cacheKey, tableDetails, { ex: 3600 });
+
     return NextResponse.json({
       message: "Tables fetched successfully",
       tables: tableDetails,
       status: 200,
       success: true,
+      source: "mongodb",
     });
   } catch (error) {
-    return NextResponse.json({
-      message: "Internal server error !",
-      error,
-      status: 500,
-      success: false,
-    });
+    return NextResponse.json(
+      {
+        message: "Internal server error!",
+        status: 500,
+        success: false,
+        error: error,
+      },
+      { status: 500 }
+    );
   }
 }

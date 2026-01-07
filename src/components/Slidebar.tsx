@@ -111,6 +111,7 @@ const Sidebar = () => {
       name: "Dashboard",
       icon: <FaChartBar size={18} />,
     },
+    { path: "/cookMenu", name: "Menu", icon: <FaUtensils size={18} /> },
   ];
 
   const toggleSidebar = () => setIsOpen(!isOpen);

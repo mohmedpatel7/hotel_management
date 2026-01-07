@@ -4,6 +4,8 @@ import Food from "@/lib/schema/FoodList";
 import Weater from "@/lib/schema/Weater";
 import { connectDB } from "@/lib/db/dbConnection";
 import jwt from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
+import { set } from "mongoose";
 
 /**
  * POST /api/reports/orders
@@ -36,9 +38,6 @@ import jwt from "jsonwebtoken";
  */
 export async function POST(req: NextRequest) {
   try {
-    // ✅ Always await DB
-    await connectDB();
-
     // 🔐 Auth
     const token = req.headers.get("manager_token");
     if (!token) {
@@ -64,12 +63,26 @@ export async function POST(req: NextRequest) {
     // 📦 Body
     const { from, to } = await req.json();
 
+    //setting up key for redis
+    const redisKey = `orders:${from}:${to}`;
+
+    // 1️⃣ CHECK REDIS FIRST
+    const cached = await client.get(redisKey);
+    if (cached) {
+      return NextResponse.json(
+        { orders: cached, source: "redis" },
+        { status: 200 }
+      );
+    }
+
     if (!from || !to) {
       return NextResponse.json(
         { error: "from and to are required" },
         { status: 400 }
       );
     }
+
+    connectDB();
 
     const fromDate = new Date(from);
     const toDate = new Date(to);
@@ -126,9 +139,11 @@ export async function POST(req: NextRequest) {
       weater: weaterMap[order.weaterId?.toString()] || null,
     }));
 
+    //2. Stroring on redis.
+    await client.set(redisKey, result, { ex: 1800 });
+
     return NextResponse.json({ orders: result }, { status: 200 });
   } catch (error) {
-    console.error("Order filter error:", error);
     return NextResponse.json(
       { message: "Internal Server Error", error: error },
       { status: 500 }

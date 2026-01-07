@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db/dbConnection";
 import FoodList from "@/lib/schema/FoodList";
 import cloudinary from "@/utils/cloudinary";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -78,6 +79,19 @@ export async function POST(req: NextRequest) {
 // ✅ Get food list
 export async function GET() {
   try {
+    const foodKey = "foodList:all";
+    // 1.Check Cache first.
+    const foodListCache = await client.get(foodKey);
+    if (foodListCache) {
+      return NextResponse.json({
+        success: true,
+        status: 200,
+        message: "Food list fetched successfully !",
+        foodItems: foodListCache,
+        source: "redis",
+      });
+    }
+
     connectDB();
 
     const foodList = await FoodList.find();
@@ -101,6 +115,9 @@ export async function GET() {
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     }));
+
+    // 2. Store in redis cache.
+    await client.set(foodKey, response, { ex: 3600 });
 
     return NextResponse.json({ foodItems: response }, { status: 200 });
   } catch (error) {
