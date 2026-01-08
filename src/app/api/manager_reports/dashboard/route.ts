@@ -94,7 +94,7 @@ export async function GET() {
     };
 
     // 3️⃣ Store in Redis (TTL: 60 sec)
-    await client.set(cacheKey, responseData, { ex: 3600 });
+    await client.set(cacheKey, responseData, { ex: 1500 });
 
     return NextResponse.json({
       ...responseData,

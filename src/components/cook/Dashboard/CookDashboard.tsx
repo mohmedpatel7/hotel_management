@@ -313,8 +313,8 @@ export default function CookDashboard() {
             )}
 
             {isModalOpen && selectedOrder && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-sm">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fadeIn">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 animate-modalScale">
                   <h2 className="text-xl font-semibold text-orange-500 mb-1">
                     Update Order Status
                   </h2>
@@ -375,6 +375,33 @@ export default function CookDashboard() {
           </div>
         </section>
       )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes modalScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        .animate-modalScale {
+          animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+      `}</style>
     </>
   );
 }

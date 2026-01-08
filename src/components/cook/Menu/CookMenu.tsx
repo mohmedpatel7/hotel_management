@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFoodList } from "@/Redux/slices/Foodlist";
-import { createOrder } from "@/Redux/slices/Order";
+import { getFoodList, updateFoodStatus } from "@/Redux/slices/Foodlist";
 import { fetchTables } from "@/Redux/slices/Table";
 import { RootState, AppDispatch } from "@/Redux/store/store";
 import { FaSearch } from "react-icons/fa";
@@ -37,36 +37,29 @@ const MenuList: React.FC = () => {
   const { foodItems, loading, error } = useSelector(
     (state: RootState) => state.foodlist
   );
-  const { loading: orderLoading } = useSelector(
-    (state: RootState) => state.order
-  );
-  const { tables } = useSelector((state: RootState) => state.table);
-
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [localFoodItems, setLocalFoodItems] = useState(foodItems);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [selectedFoodItem, setSelectedFoodItem] = useState<{
-    _id: string;
-    foodName: string;
-    halfPrice?: number;
-    fullPrice: number;
-  } | null>(null);
-  const [selectedQuantity, setSelectedQuantity] = useState<
-    "half" | "full" | ""
-  >("");
-  const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [cookToken, setcookToken] = useState<string | null>(null);
+
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusFoodItem, setStatusFoodItem] = useState<{
+    id: string;
+    foodName: string;
+    status: "available" | "unavailable";
+  } | null>(null);
+  const [newStatus, setNewStatus] = useState<"available" | "unavailable">(
+    "available"
+  );
 
   const { showToast } = useToast();
 
   useEffect(() => {
     dispatch(getFoodList());
-    dispatch(fetchTables());
   }, [dispatch]);
 
   useEffect(() => {
@@ -102,6 +95,58 @@ const MenuList: React.FC = () => {
       }
     }
   }, []);
+
+  const openStatusModal = useCallback(
+    (item: {
+      id: string;
+      foodName: string;
+      status: "available" | "unavailable";
+    }) => {
+      setStatusFoodItem({
+        id: item.id,
+        foodName: item.foodName,
+        status: item.status,
+      });
+      setNewStatus(item.status);
+      setIsStatusModalOpen(true);
+    },
+    []
+  );
+
+  const closeStatusModal = useCallback(() => {
+    setIsStatusModalOpen(false);
+    setStatusFoodItem(null);
+  }, []);
+
+  const handleUpdateStatus = useCallback(async () => {
+    if (!statusFoodItem || statusUpdating) return;
+
+    setStatusUpdating(true);
+    try {
+      await dispatch(
+        updateFoodStatus({ id: statusFoodItem.id, status: newStatus })
+      ).unwrap();
+      showToast("Food status updated successfully!", "success");
+      closeStatusModal();
+    } catch (error) {
+      const message =
+        typeof error === "string"
+          ? error
+          : error instanceof Error
+          ? error.message
+          : "Failed to update food status";
+      showToast(message, "error");
+    } finally {
+      setStatusUpdating(false);
+    }
+  }, [
+    closeStatusModal,
+    dispatch,
+    newStatus,
+    showToast,
+    statusFoodItem,
+    statusUpdating,
+  ]);
 
   const filteredItems = localFoodItems.filter((item) =>
     item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -249,18 +294,14 @@ const MenuList: React.FC = () => {
                   {grouped[category].map((item, itemIndex) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp cursor-pointer"
-                      onClick={() => {
-                        setSelectedFoodItem({
-                          _id: item.id,
+                      onClick={() =>
+                        openStatusModal({
+                          id: item.id,
                           foodName: item.foodName,
-                          halfPrice: item.halfPrice
-                            ? Number(item.halfPrice)
-                            : undefined,
-                          fullPrice: Number(item.fullPrice),
-                        });
-                        setIsOrderModalOpen(true);
-                      }}
+                          status: item.status,
+                        })
+                      }
+                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp cursor-pointer group"
                       style={{
                         animationDelay: `${catIndex * 100 + itemIndex * 50}ms`,
                         animationFillMode: "forwards",
@@ -270,13 +311,15 @@ const MenuList: React.FC = () => {
                         <img
                           src={item.foodImage}
                           alt={item.foodName}
-                          className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
+                          className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                       <div className="p-4">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {item.foodName}
-                        </h3>
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            {item.foodName}
+                          </h3>
+                        </div>
                         <div className="mt-3 flex items-center justify-between">
                           <span className="text-sm text-gray-500 capitalize">
                             {item.type}
@@ -332,85 +375,77 @@ const MenuList: React.FC = () => {
             transform: translateY(0);
           }
         }
+        @keyframes modalScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
+          animation: fadeIn 0.3s ease-out;
         }
         .animate-fadeInUp {
-          animation: fadeInUp 0.4s ease-in-out;
+          animation: fadeInUp 0.4s ease-out;
+        }
+        .animate-modalScale {
+          animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
       `}</style>
 
-      {/* Order Modal */}
-      {isOrderModalOpen && selectedFoodItem && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-xl font-bold text-orange-600 mb-4">
-              Place Order for {selectedFoodItem.foodName}
-            </h3>
+      {isStatusModalOpen && statusFoodItem && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 animate-modalScale">
+            <h2 className="text-xl font-semibold text-orange-500 mb-1">
+              Update Food Status
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {statusFoodItem.foodName}
+            </p>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Quantity:
-              </label>
-              <select
-                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={selectedQuantity}
-                onChange={(e) =>
-                  setSelectedQuantity(e.target.value as "half" | "full")
-                }
-              >
-                <option value="">Select Quantity</option>
-                {selectedFoodItem.halfPrice && (
-                  <option value="half">
-                    Half (₹{selectedFoodItem.halfPrice})
-                  </option>
-                )}
-                <option value="full">
-                  Full (₹{selectedFoodItem.fullPrice})
-                </option>
-              </select>
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-gray-700">
+                Select new status:
+              </p>
+              <div className="flex gap-3">
+                {(["available", "unavailable"] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setNewStatus(status)}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border transition-all duration-200 ${
+                      newStatus === status
+                        ? "text-white " +
+                          (status === "available"
+                            ? "bg-green-500 border-green-600"
+                            : "bg-red-500 border-red-600")
+                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                    }`}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Table Number:
-              </label>
-              <select
-                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={selectedTable || ""}
-                onChange={(e) => setSelectedTable(e.target.value)}
-              >
-                <option value="">Select Table</option>
-                {tables
-                  ?.filter((table) => table.status === "booked")
-                  .map((table) => (
-                    <option key={table._id} value={table.number}>
-                      Table {table.number} ({table.status})
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="mt-8 flex justify-end gap-4">
+            <div className="mt-6 flex justify-end gap-4">
               <button
-                onClick={() => {
-                  setIsOrderModalOpen(false);
-                  setSelectedFoodItem(null);
-                  setSelectedQuantity("");
-                  setSelectedTable(null);
-                }}
-                className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                onClick={closeStatusModal}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                disabled={orderLoading}
-                className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                onClick={handleUpdateStatus}
+                disabled={statusUpdating}
+                className="px-4 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
               >
-                {orderLoading && (
+                {statusUpdating && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                 )}
-                Place Order
+                Update
               </button>
             </div>
           </div>

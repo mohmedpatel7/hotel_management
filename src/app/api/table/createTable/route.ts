@@ -110,8 +110,8 @@ export async function GET() {
       number: table.number,
     }));
 
-    // 3️⃣ Store in Redis (TTL 30 sec)
-    await client.set(cacheKey, tableDetails, { ex: 3600 });
+    // 3️⃣ Store in Redis (TTL 40 sec)
+    await client.set(cacheKey, tableDetails, { ex: 40 });
 
     return NextResponse.json({
       message: "Tables fetched successfully",

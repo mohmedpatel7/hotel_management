@@ -14,6 +14,7 @@ interface FoodItem {
 
 interface FoodState {
   foodItems: FoodItem[];
+  foodItemsForWaiter: FoodItem[];
   selectedFood: FoodItem | null;
   loading: boolean;
   error: string | null;
@@ -22,6 +23,7 @@ interface FoodState {
 // Initial state with proper typing
 const initialState: FoodState = {
   foodItems: [],
+  foodItemsForWaiter: [],
   selectedFood: null,
   loading: false,
   error: null,
@@ -62,6 +64,31 @@ export const getFoodList = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetch("/api/foodlist/addFood", {
+        method: "GET",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(data.message);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("An unknown error occurred");
+    }
+  }
+);
+
+// Async thunk for fetching food list
+export const getFoodListForWaiter = createAsyncThunk(
+  "food/getFoodListForWaiter",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch("/api/foodlist/weaterMenu", {
         method: "GET",
       });
 
@@ -254,6 +281,20 @@ const foodSlice = createSlice({
         state.foodItems = action.payload.foodItems;
       })
       .addCase(getFoodList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Get food list for waiter cases
+      .addCase(getFoodListForWaiter.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getFoodListForWaiter.fulfilled, (state, action) => {
+        state.loading = false;
+        state.foodItemsForWaiter = action.payload.foodItems;
+      })
+      .addCase(getFoodListForWaiter.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

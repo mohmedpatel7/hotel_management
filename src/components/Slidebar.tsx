@@ -173,10 +173,10 @@ const Sidebar = () => {
                       <Link
                         href={item.path}
                         onClick={handleLinkClick}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
                           ${
                             pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
                               : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
                           }`}
                       >
@@ -192,10 +192,10 @@ const Sidebar = () => {
                         <Link
                           href={item.path}
                           onClick={handleLinkClick}
-                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
                             ${
                               pathname === item.path
-                                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
                                 : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
                             }`}
                         >
@@ -218,10 +218,10 @@ const Sidebar = () => {
                     <Link
                       href={item.path}
                       onClick={handleLinkClick}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
                           ${
                             pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
                               : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
                           }`}
                     >
@@ -242,10 +242,10 @@ const Sidebar = () => {
                     <Link
                       href={item.path}
                       onClick={handleLinkClick}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
                           ${
                             pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
                               : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
                           }`}
                     >
@@ -264,7 +264,7 @@ const Sidebar = () => {
             <div className="relative">
               <button
                 onClick={toggleProfileMenu}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02] hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
               >
                 <FaUserCircle size={20} />
                 <span className="text-sm">My Profile</span>
@@ -275,7 +275,7 @@ const Sidebar = () => {
                     <Link
                       href="/managerProfile"
                       onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
                     >
                       Profile
                     </Link>
@@ -284,7 +284,7 @@ const Sidebar = () => {
                     <Link
                       href="/cookProfile"
                       onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
                     >
                       Profile
                     </Link>
@@ -293,7 +293,7 @@ const Sidebar = () => {
                     <Link
                       href="/waiterProfile"
                       onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-colors text-sm"
+                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
                     >
                       Profile
                     </Link>
@@ -309,7 +309,7 @@ const Sidebar = () => {
                       router.push("/");
                       if (window.innerWidth < 768) setIsOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2 text-white hover:bg-orange-500 transition-colors flex items-center gap-2 text-sm"
+                    className="w-full text-left px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 flex items-center gap-2 text-sm"
                   >
                     <FaSignOutAlt /> Logout
                   </button>

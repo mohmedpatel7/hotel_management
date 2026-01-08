@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
 //Get cook profile...
 export async function GET(req: NextRequest) {
   try {
-    connectDB();
     const token = req.headers.get("cook_token");
     if (!token) {
       return NextResponse.json({
@@ -112,6 +111,8 @@ export async function GET(req: NextRequest) {
         source: "redis",
       });
     }
+
+    connectDB();
 
     const cook = await Cook.findById({ _id: userId }).select("-password");
     if (!cook) {

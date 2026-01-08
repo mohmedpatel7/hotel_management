@@ -555,12 +555,13 @@ export default function BillDashboard() {
         )}
       </div>
 
+      {/* Update Modal */}
       {isModalOpen && selectedBill && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 m-4">
-            <h2 className="text-2xl font-bold text-orange-600 mb-6">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-modalScale">
+            <h3 className="text-xl font-bold text-orange-600 mb-4">
               Update Bill Status
-            </h2>
+            </h3>
             <div className="mb-6">
               <p className="text-lg font-semibold text-gray-700">
                 Bill ID: {selectedBill.billId}
@@ -617,6 +618,33 @@ export default function BillDashboard() {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes modalScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        .animate-modalScale {
+          animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+      `}</style>
     </section>
   );
 }

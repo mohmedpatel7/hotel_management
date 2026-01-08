@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFoodList } from "@/Redux/slices/Foodlist";
+import { getFoodListForWaiter } from "@/Redux/slices/Foodlist";
 import { createOrder } from "@/Redux/slices/Order";
 import { fetchTables } from "@/Redux/slices/Table";
 import { RootState, AppDispatch } from "@/Redux/store/store";
@@ -34,7 +34,7 @@ const categoryEmoji: Record<string, string> = {
 
 const MenuList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { foodItems, loading, error } = useSelector(
+  const { foodItemsForWaiter, loading, error } = useSelector(
     (state: RootState) => state.foodlist
   );
   const { loading: orderLoading } = useSelector(
@@ -44,7 +44,7 @@ const MenuList: React.FC = () => {
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [localFoodItems, setLocalFoodItems] = useState(foodItems);
+  const [localFoodItems, setLocalFoodItems] = useState(foodItemsForWaiter);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -65,13 +65,13 @@ const MenuList: React.FC = () => {
   const { showToast } = useToast();
 
   useEffect(() => {
-    dispatch(getFoodList());
+    dispatch(getFoodListForWaiter());
     dispatch(fetchTables());
   }, [dispatch]);
 
   useEffect(() => {
-    setLocalFoodItems(foodItems);
-  }, [foodItems]);
+    setLocalFoodItems(foodItemsForWaiter);
+  }, [foodItemsForWaiter]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -378,18 +378,31 @@ const MenuList: React.FC = () => {
             transform: translateY(0);
           }
         }
+        @keyframes modalScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
+          animation: fadeIn 0.3s ease-out;
         }
         .animate-fadeInUp {
           animation: fadeInUp 0.4s ease-in-out;
+        }
+        .animate-modalScale {
+          animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
       `}</style>
 
       {/* Order Modal */}
       {isOrderModalOpen && selectedFoodItem && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-modalScale">
             <h3 className="text-xl font-bold text-orange-600 mb-4">
               Place Order for {selectedFoodItem.foodName}
             </h3>

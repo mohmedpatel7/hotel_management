@@ -65,8 +65,6 @@ export async function POST(req: NextRequest) {
 // Get manager profile
 export async function GET(req: NextRequest) {
   try {
-    await connectDB();
-
     const token = req.headers.get("manager_token");
     if (!token) {
       return NextResponse.json(
@@ -99,6 +97,8 @@ export async function GET(req: NextRequest) {
         source: "redis",
       });
     }
+
+    connectDB();
 
     // 2️⃣ FETCH FROM MONGODB
     const manager = await Manager.findById(userId).select("-password");

@@ -81,8 +81,6 @@ export async function POST(req: NextRequest) {
 //Get weater profile...
 export async function GET(req: NextRequest) {
   try {
-    connectDB();
-
     const token = req.headers.get("weater_token");
     if (!token) {
       return NextResponse.json({
@@ -115,6 +113,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    connectDB();
+
+    // 2️⃣ FETCH FROM MONGODB
     const weater = await Weater.findById({ _id: userId }).select("-password");
     if (!weater) {
       return NextResponse.json({

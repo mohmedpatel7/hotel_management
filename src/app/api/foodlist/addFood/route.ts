@@ -117,7 +117,7 @@ export async function GET() {
     }));
 
     // 2. Store in redis cache.
-    await client.set(foodKey, response, { ex: 3600 });
+    await client.set(foodKey, response, { ex: 1200 });
 
     return NextResponse.json({ foodItems: response }, { status: 200 });
   } catch (error) {

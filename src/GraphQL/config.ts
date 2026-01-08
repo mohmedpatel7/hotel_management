@@ -199,7 +199,7 @@ export const resolvers = {
         });
 
         // 2. Store in redis cache.
-        await client.set(cacheKey, billList, { ex: 3600 });
+        await client.set(cacheKey, billList, { ex: 100 });
 
         return billList;
       } catch (error) {
@@ -229,7 +229,7 @@ export const resolvers = {
         });
 
         // 2. Store in redis cache.
-        await client.set(cacheKey, orders, { ex: 3600 });
+        await client.set(cacheKey, orders, { ex: 90 });
 
         return orders;
       } catch (error) {
@@ -240,7 +240,9 @@ export const resolvers = {
     //Return orders for cook
     getOrdersForCook: async () => {
       connectDB();
-      return await Order.find();
+      return await Order.find().sort({
+        createdAt: -1,
+      });
     },
   },
 };
