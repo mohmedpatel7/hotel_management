@@ -111,7 +111,7 @@ export async function GET() {
     }));
 
     // 3️⃣ Store in Redis (TTL 40 sec)
-    await client.set(cacheKey, tableDetails, { ex: 40 });
+    await client.set(cacheKey, tableDetails, { ex: 30 });
 
     return NextResponse.json({
       message: "Tables fetched successfully",

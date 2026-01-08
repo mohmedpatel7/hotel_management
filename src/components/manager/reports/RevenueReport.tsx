@@ -3,7 +3,16 @@ import { fetchRevenueReport } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiInbox } from "react-icons/fi";
+import {
+  FiInbox,
+  FiCalendar,
+  FiSearch,
+  FiTrash2,
+  FiTrendingUp,
+  FiAlertCircle,
+  FiRefreshCw,
+} from "react-icons/fi";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 function formatDateLocal(date: Date): string {
   const year = date.getFullYear();
@@ -11,6 +20,28 @@ function formatDateLocal(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+    },
+  },
+};
 
 export default function RevenueReport() {
   const dispatch = useDispatch<AppDispatch>();
@@ -35,126 +66,187 @@ export default function RevenueReport() {
   const handleClear = () => {
     setFrom("");
     setTo("");
-    dispatch(fetchRevenueReport({ from, to }));
+    dispatch(fetchRevenueReport({ from: "", to: "" }));
   };
 
   return (
-    <section
-      className="min-h-screen px-6 py-10"
-      style={{ backgroundColor: "#ffffff" }}
+    <motion.section
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen bg-[#f8fafc] px-4 sm:px-8 py-12"
     >
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
-          Revenue Report
-        </h2>
-
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From
-            </label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 bg-white shadow-sm transition"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              To
-            </label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 bg-white shadow-sm transition"
-            />
-          </div>
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-3 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition"
-            >
-              Submit
-            </button>
-            <button
-              onClick={handleClear}
-              className="px-4 py-3 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-            >
-              Clear
-            </button>
-          </div>
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <motion.div variants={itemVariants}>
+            <h1 className="text-4xl font-black text-gray-900">
+              Revenue <span className="text-orange-500">Report</span>
+            </h1>
+            <p className="text-gray-500 mt-1 font-medium">
+              Track your restaurants financial performance
+            </p>
+          </motion.div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
-            <div className="text-red-500 mb-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        {/* Filters Section */}
+        <motion.div
+          variants={itemVariants}
+          className="bg-white p-6 sm:p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-12"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                From Date
+              </label>
+              <div className="relative">
+                <FiCalendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold"
                 />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-red-700 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-red-600">
-              {typeof error === "string"
-                ? error
-                : (error as { message?: string })?.message || "Unknown error"}
-            </p>
-          </div>
-        )}
-
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-700">Loading revenue...</p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && !revenueReport && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <FiInbox className="h-20 w-20 mx-auto text-orange-400 mb-4" />
-              <h3 className="text-xl font-semibold text-orange-600">
-                No data fetched yet
-              </h3>
-              <p className="text-gray-600 mt-2">
-                Please select a date range to view revenue.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && revenueReport && (
-          <>
-            {/* Summary Section */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Total Revenue
-                </h3>
-                <p className="text-3xl font-bold text-green-600">
-                  ₹{revenueReport.totalRevenue.toFixed(2)}
-                </p>
               </div>
             </div>
-          </>
-        )}
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                To Date
+              </label>
+              <div className="relative">
+                <FiCalendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleSubmit}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-orange-200 flex items-center justify-center gap-2 group"
+              >
+                <FiSearch className="group-hover:scale-110 transition-transform" />
+                Fetch Report
+              </button>
+              <button
+                onClick={handleClear}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold py-4 px-6 rounded-2xl transition-all flex items-center justify-center group"
+                title="Clear Filters"
+              >
+                <FiTrash2 className="group-hover:rotate-12 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Content Section */}
+        <AnimatePresence mode="wait">
+          {error ? (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-red-50 border-2 border-red-100 rounded-[2.5rem] p-12 text-center max-w-2xl mx-auto"
+            >
+              <div className="bg-red-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <FiAlertCircle className="text-red-500 text-4xl" />
+              </div>
+              <h3 className="text-2xl font-black text-red-900 mb-2">
+                Oops! Something went wrong
+              </h3>
+              <p className="text-red-600 font-medium mb-8">
+                {error || "Failed to fetch revenue data"}
+              </p>
+              <button
+                onClick={handleSubmit}
+                className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-red-200"
+              >
+                <FiRefreshCw /> Try Again
+              </button>
+            </motion.div>
+          ) : loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-32"
+            >
+              <div className="relative">
+                <div className="w-24 h-24 border-8 border-orange-100 border-t-orange-500 rounded-full animate-spin"></div>
+                <FiTrendingUp className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500 text-2xl" />
+              </div>
+              <p className="mt-8 text-gray-500 font-bold text-lg animate-pulse">
+                Calculating revenue...
+              </p>
+            </motion.div>
+          ) : !revenueReport ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-32"
+            >
+              <div className="bg-orange-50 w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8">
+                <FiInbox className="text-orange-400 text-4xl" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-2">
+                No Data Fetched Yet
+              </h3>
+              <p className="text-gray-500 font-medium max-w-md mx-auto">
+                Select a date range above to see your restaurants revenue
+                performance.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {/* Total Revenue Card */}
+              <motion.div
+                variants={itemVariants}
+                className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-xl hover:shadow-orange-100/50 transition-all duration-500"
+              >
+                <div className="absolute top-0 right-0 p-8">
+                  <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <FiTrendingUp className="text-green-500 text-2xl" />
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                  Total Revenue
+                </h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-gray-400">₹</span>
+                  <span className="text-5xl font-black text-gray-900">
+                    {revenueReport.totalRevenue.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="mt-8 flex items-center gap-2 text-green-600 bg-green-50 w-fit px-4 py-2 rounded-xl font-bold text-sm">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Live Performance
+                </div>
+              </motion.div>
+
+              {/* You can add more metrics here if the API provides them, 
+                  like order count, average order value, etc. */}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </section>
+    </motion.section>
   );
 }

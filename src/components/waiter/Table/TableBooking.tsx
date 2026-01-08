@@ -3,9 +3,23 @@ import { fetchTables, updateTableStatus } from "@/Redux/slices/Table";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiTable, FiEdit } from "react-icons/fi";
+import { FiTable, FiEdit, FiTrash2 } from "react-icons/fi";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 export default function Tables() {
   const dispatch = useDispatch<AppDispatch>();
@@ -93,206 +107,234 @@ export default function Tables() {
 
   return (
     isWaiter && (
-      <section
-        className="min-h-screen px-6 py-10"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
-            Tables
-          </h2>
+      <div className="min-h-screen bg-[#f8fafc]">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <h1 className="text-4xl font-black text-gray-900">
+                Table <span className="text-orange-500">Booking</span>
+              </h1>
+              <p className="text-gray-500 mt-1 font-medium">
+                Monitor and update table availability in real-time
+              </p>
+            </motion.div>
 
-          {/* Filter Menu */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            {(["all", "available", "booked"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                  statusFilter === s
-                    ? "bg-orange-500 text-white border-orange-500"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
+            {/* Filter Menu */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-wrap gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100"
+            >
+              {(["all", "available", "booked"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    statusFilter === s
+                      ? "bg-orange-500 text-white shadow-lg shadow-orange-200"
+                      : "text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </motion.div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
-              <div className="text-red-500 mb-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 mx-auto"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-8 border border-red-50 text-center mb-12"
+            >
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiTrash2 className="text-red-500 text-3xl" />
               </div>
-              <h3 className="text-lg font-semibold text-red-700 mb-2">
-                Something went wrong
-              </h3>
-              <p className="text-red-600">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
+              <p className="text-gray-600 mb-8">
                 {typeof error === "string"
                   ? error
-                  : (error as { message?: string })?.message || "Unknown error"}
+                  : (error as { message?: string })?.message ||
+                    "Failed to load tables."}
               </p>
-            </div>
+              <button
+                onClick={() => dispatch(fetchTables())}
+                className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200"
+              >
+                Try Again
+              </button>
+            </motion.div>
           )}
 
           {loading && (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-700">Loading tables...</p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-20">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mb-4"
+              />
+              <p className="text-gray-600 font-medium">Loading Tables...</p>
             </div>
           )}
 
           {!loading && !error && tables.length === 0 && (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <FiTable className="h-20 w-20 mx-auto text-orange-400 mb-4" />
-                <h3 className="text-xl font-semibold text-orange-600">
-                  No tables found
-                </h3>
-                <p className="text-gray-600 mt-2">
-                  Please add tables to view them here.
-                </p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
+            >
+              <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                <FiTable className="text-orange-200 text-4xl" />
               </div>
-            </div>
+              <h3 className="text-xl font-bold text-gray-800">
+                No tables found
+              </h3>
+              <p className="text-gray-500 mt-2 font-medium">
+                Wait for the manager to add tables!
+              </p>
+            </motion.div>
           )}
 
           {!loading && !error && filteredTables.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+            >
               {filteredTables.map((table) => (
-                <div
+                <motion.div
                   key={table?._id}
-                  className={`p-6 rounded-xl shadow-lg border transition-colors ${
-                    table.status === "occupied" || table.status === "booked"
-                      ? "bg-red-100 border-red-300"
-                      : "bg-green-100 border-green-300"
-                  }`}
+                  variants={itemVariants}
+                  whileHover={{ y: -8 }}
+                  className="group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 relative"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
-                      Table {table.number}
-                    </h3>
-                    <button
-                      onClick={() => {
-                        openUpdateModal(table);
-                      }}
-                      className="p-2 rounded-full hover:bg-gray-200 focus:outline-none"
-                      aria-label="Edit table status"
-                    >
-                      <FiEdit className="h-6 w-6 text-orange-500" />
-                    </button>
-                  </div>
-                  <p
-                    className={`text-lg font-semibold capitalize ${
-                      table.status === "booked"
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {table.status}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Modal for update status */}
-        {isUpdateModalOpen && tableToUpdate && (
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-modalScale">
-              <h3 className="text-xl font-bold text-orange-600 mb-4">
-                Update Table Status
-              </h3>
-              <p className="text-gray-700 mb-4">
-                Table Number: {tableToUpdate.number}
-              </p>
-
-              <div className="space-y-2">
-                <p className="text-gray-600 font-medium">Select new status:</p>
-                <div className="flex gap-4">
-                  {(["available", "booked"] as const).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setNewStatus(status)}
-                      className={`flex-1 px-4 py-3 rounded-xl text-sm font-semibold border transition-all duration-200 ${
-                        newStatus === status
-                          ? "text-white shadow-lg transform scale-105 " +
-                            (status === "available"
-                              ? "bg-green-500 border-green-600"
-                              : "bg-red-500 border-red-600")
-                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                  <div className="flex items-center justify-between mb-8">
+                    <div
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
+                        table.status === "available"
+                          ? "bg-green-50 text-green-500"
+                          : "bg-red-50 text-red-500"
                       }`}
                     >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      <FiTable />
+                    </div>
+                    <button
+                      onClick={() => openUpdateModal(table)}
+                      className="p-3 rounded-xl text-orange-500 hover:bg-orange-50 transition-all duration-300"
+                    >
+                      <FiEdit className="text-xl" />
                     </button>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              <div className="mt-8 flex justify-end gap-4">
-                <button
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-800 mb-2">
+                      Table {table.number}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          table.status === "available"
+                            ? "bg-green-500 animate-pulse"
+                            : "bg-red-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-sm font-bold uppercase tracking-wider ${
+                          table.status === "available"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {table.status}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Update Table Status Modal */}
+          <AnimatePresence>
+            {isUpdateModalOpen && tableToUpdate && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   onClick={closeUpdateModal}
-                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                  className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateTableStatus}
-                  disabled={loading}
-                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
-                >
-                  {loading && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  )}
-                  Update
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                  <div className="bg-orange-500 p-8 text-white">
+                    <h3 className="text-3xl font-black">Update Status</h3>
+                    <p className="text-orange-100 font-medium opacity-90">
+                      Table {tableToUpdate.number}
+                    </p>
+                  </div>
 
-        <style jsx>{`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-            }
-            to {
-              opacity: 1;
-            }
-          }
-          @keyframes modalScale {
-            from {
-              opacity: 0;
-              transform: scale(0.95) translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1) translateY(0);
-            }
-          }
-          .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out;
-          }
-          .animate-modalScale {
-            animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          }
-        `}</style>
-      </section>
+                  <div className="p-8">
+                    <div className="mb-8">
+                      <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 text-center">
+                        Select New Status
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {(["available", "booked"] as const).map((status) => (
+                          <button
+                            key={status}
+                            onClick={() => setNewStatus(status)}
+                            className={`py-4 rounded-2xl font-bold transition-all duration-300 border-2 ${
+                              newStatus === status
+                                ? status === "available"
+                                  ? "bg-green-50 border-green-500 text-green-600 shadow-lg shadow-green-100"
+                                  : "bg-red-50 border-red-500 text-red-600 shadow-lg shadow-red-100"
+                                : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100"
+                            }`}
+                          >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        onClick={closeUpdateModal}
+                        className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleUpdateTableStatus}
+                        disabled={loading}
+                        className="flex-[2] py-4 bg-orange-500 text-white rounded-2xl font-black shadow-xl shadow-orange-200 hover:bg-orange-600 disabled:bg-gray-300 transition-all flex items-center justify-center gap-3"
+                      >
+                        {loading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          "Update Status"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+        </section>
+      </div>
     )
   );
 }

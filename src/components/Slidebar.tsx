@@ -3,36 +3,56 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
-  FaHome,
-  FaChartBar,
-  FaUtensils,
-  FaClipboardList,
-  FaBars,
-  FaTimes,
-  FaUserCircle,
-  FaSignInAlt,
-  FaSignOutAlt,
-  FaUsers,
-  FaTable,
-  FaFileInvoiceDollar,
-} from "react-icons/fa";
+  FiHome,
+  FiPieChart,
+  FiCoffee,
+  FiClipboard,
+  FiMenu,
+  FiX,
+  FiUser,
+  FiLogIn,
+  FiLogOut,
+  FiUsers,
+  FiGrid,
+  FiFileText,
+  FiChevronRight,
+  FiSettings,
+} from "react-icons/fi";
 import { useToast } from "@/components/Toast";
+
+interface MenuItem {
+  path: string;
+  name: string;
+  icon: React.ReactNode;
+}
 
 const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // Default to true for mobile-first rendering
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
-
   const { showToast } = useToast();
 
-  // Guard localStorage access to avoid SSR ReferenceError
   const [isManger, setIsManger] = useState(false);
   const [isCook, setIsCook] = useState(false);
   const [isWaiter, setIsWaiter] = useState(false);
 
-  // Listen for storage events to update auth state across tabs/windows
+  // Handle responsive state
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setIsOpen(true);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const updateAuth = () => {
       if (typeof window !== "undefined") {
@@ -46,7 +66,6 @@ const Sidebar = () => {
     return () => window.removeEventListener("storage", updateAuth);
   }, []);
 
-  // Re-check on route change to ensure fresh state after signin/signout
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsManger(!!localStorage.getItem("manager_token"));
@@ -55,281 +74,265 @@ const Sidebar = () => {
     }
   }, [pathname]);
 
-  const handleProfilenavi = () => {
-    if (isCook) {
-      router.push("/cookProfile");
-    } else if (isWaiter) {
-      router.push("/waiterProfile");
-    } else if (isManger) {
-      router.push("/managerProfile");
-    }
-  };
-
-  const menuItems = [
-    { path: "/", name: "Home", icon: <FaHome size={18} /> },
-    {
-      path: "/dashboardManager",
-      name: "Dashboard",
-      icon: <FaChartBar size={18} />,
-    },
-    { path: "/menuList", name: "Menu", icon: <FaUtensils size={18} /> },
-    {
-      path: "/reportsManager",
-      name: "Analytics",
-      icon: <FaClipboardList size={18} />,
-    },
-    {
-      path: "/tablesDashboard",
-      name: "Table",
-      icon: <FaTable size={18} />,
-    },
-    {
-      path: "/billDashboard",
-      name: "Bills",
-      icon: <FaFileInvoiceDollar size={18} />,
-    },
-    {
-      path: "/userCreation",
-      name: "Users",
-      icon: <FaUsers size={18} />,
-    },
+  const menuItems: MenuItem[] = [
+    { path: "/", name: "Home", icon: <FiHome /> },
+    { path: "/dashboardManager", name: "Dashboard", icon: <FiPieChart /> },
+    { path: "/menuList", name: "Menu List", icon: <FiCoffee /> },
+    { path: "/reportsManager", name: "Analytics", icon: <FiClipboard /> },
+    { path: "/tablesDashboard", name: "Tables", icon: <FiGrid /> },
+    { path: "/billDashboard", name: "Invoices", icon: <FiFileText /> },
+    { path: "/userCreation", name: "Staff Management", icon: <FiUsers /> },
   ];
 
-  const waiterMenuItems = [
-    { path: "/waiterTable", name: "Tables", icon: <FaTable size={18} /> },
-    { path: "/waiterMenu", name: "Menu", icon: <FaUtensils size={18} /> },
+  const waiterMenuItems: MenuItem[] = [
+    { path: "/waiterTable", name: "Tables", icon: <FiGrid /> },
+    { path: "/waiterMenu", name: "Menu", icon: <FiCoffee /> },
     {
       path: "/waiterOrderHistory",
       name: "Order History",
-      icon: <FaClipboardList size={18} />,
+      icon: <FiClipboard />,
     },
   ];
 
-  const cookMenuItems = [
-    {
-      path: "/cookDashboard",
-      name: "Dashboard",
-      icon: <FaChartBar size={18} />,
-    },
-    { path: "/cookMenu", name: "Menu", icon: <FaUtensils size={18} /> },
+  const cookMenuItems: MenuItem[] = [
+    { path: "/cookDashboard", name: "Kitchen Hub", icon: <FiPieChart /> },
+    { path: "/cookMenu", name: "Menu Items", icon: <FiCoffee /> },
   ];
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
-  const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
+  const sidebarVariants: Variants = {
+    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    closed: {
+      x: "-100%",
+      transition: { type: "spring", stiffness: 300, damping: 30 },
+    },
+  };
 
-  // Close sidebar on mobile after link click
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 },
+  };
+
   const handleLinkClick = () => {
-    if (window.innerWidth < 768) setIsOpen(false);
+    if (typeof window !== "undefined" && window.innerWidth < 768)
+      setIsOpen(false);
+  };
+
+  const NavItem = ({ item }: { item: MenuItem }) => {
+    const isActive = pathname === item.path;
+    return (
+      <motion.li variants={itemVariants}>
+        <Link
+          href={item.path}
+          onClick={handleLinkClick}
+          className={`group flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
+            isActive
+              ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-xl transition-transform duration-300 ${
+                isActive ? "scale-110" : "group-hover:scale-110"
+              }`}
+            >
+              {item.icon}
+            </span>
+            <span className="font-medium text-sm tracking-wide">
+              {item.name}
+            </span>
+          </div>
+          {isActive && (
+            <motion.div layoutId="activeIndicator">
+              <FiChevronRight className="text-white/70" />
+            </motion.div>
+          )}
+        </Link>
+      </motion.li>
+    );
   };
 
   return (
     <>
       {/* Mobile Toggle Button */}
       <button
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-orange-500 text-white md:hidden "
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-6 left-6 z-[60] p-3 rounded-2xl bg-[#1d1917] border border-white/10 text-white shadow-xl md:hidden hover:bg-orange-500 transition-colors duration-300"
       >
-        {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
       </button>
 
-      {/* Overlay for mobile when sidebar is open */}
-      {isOpen && (
-        <div
-          onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-transparent backdrop-blur-sm z-40 md:hidden"
-        />
-      )}
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[40] md:hidden"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <div
-        className={`fixed left-0 top-0 h-screen bg-[#1d1917] text-white shadow-lg transition-transform duration-300 ease-out flex flex-col z-50
-        ${
-          isOpen ? "w-60 translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:w-60`}
+      <motion.div
+        initial="closed"
+        animate={isMobile ? (isOpen ? "open" : "closed") : "open"}
+        variants={sidebarVariants}
+        className={`fixed left-0 top-0 h-screen w-72 bg-[#0c0a09] text-white shadow-2xl flex flex-col z-50 overflow-hidden border-r border-white/5`}
       >
-        {/* Logo */}
-        <div className="p-4">
-          <div className="mb-6 p-3 bg-gradient-to-b from-[#1d1917]-800 to-[#1d1917]-900 rounded-2xl shadow-lg">
-            <h2 className="text-2xl font-bold text-center mb-2">
-              <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
-                Hotel Mumtaz
-              </span>
-            </h2>
-            <div className="flex items-center justify-center gap-2">
-              <span className="h-px w-6 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></span>
-              <h3 className="text-base font-medium text-center text-orange-400 tracking-wide">
-                Chicken
-              </h3>
-              <span className="h-px w-6 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></span>
+        {/* Logo Section */}
+        <div className="p-8">
+          <div className="relative group cursor-pointer">
+            <div className="absolute -inset-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative bg-[#1d1917] p-5 rounded-[1.5rem] border border-white/5 shadow-inner">
+              <h2 className="text-xl font-black text-center tracking-tighter">
+                <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  HOTEL MUMTAZ
+                </span>
+              </h2>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-orange-500/50" />
+                <span className="text-[10px] font-bold text-orange-400 tracking-[0.3em] uppercase">
+                  Chicken
+                </span>
+                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-orange-500/50" />
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Navigation for manager */}
-          <nav>
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
+          <motion.nav
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } },
+            }}
+          >
             <ul className="space-y-2">
               {isManger
                 ? menuItems.map((item) => (
-                    <li key={item.path}>
-                      <Link
-                        href={item.path}
-                        onClick={handleLinkClick}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
-                          ${
-                            pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
-                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
-                          }`}
-                      >
-                        <span className="text-lg">{item.icon}</span>
-                        <span className="font-medium text-sm">{item.name}</span>
-                      </Link>
-                    </li>
+                    <NavItem key={item.path} item={item} />
                   ))
                 : menuItems
                     .filter((item) => item.path === "/")
-                    .map((item) => (
-                      <li key={item.path}>
-                        <Link
-                          href={item.path}
-                          onClick={handleLinkClick}
-                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
-                            ${
-                              pathname === item.path
-                                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
-                                : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
-                            }`}
-                        >
-                          <span className="text-lg">{item.icon}</span>
-                          <span className="font-medium text-sm">
-                            {item.name}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-            </ul>
-          </nav>
+                    .map((item) => <NavItem key={item.path} item={item} />)}
 
-          {/* Navigation for waiter */}
-          <nav>
-            <ul className="space-y-2 mt-2">
-              {isWaiter &&
-                waiterMenuItems.map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      href={item.path}
-                      onClick={handleLinkClick}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
-                          ${
-                            pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
-                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
-                          }`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      <span className="font-medium text-sm">{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </nav>
-
-          {/* Navigation for cook */}
-          <nav>
-            <ul className="space-y-2 mt-2">
-              {isCook &&
-                cookMenuItems.map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      href={item.path}
-                      onClick={handleLinkClick}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02]
-                          ${
-                            pathname === item.path
-                              ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md scale-[1.02] translate-x-2"
-                              : "hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-md text-gray-300"
-                          }`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      <span className="font-medium text-sm">{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Auth Section - Fixed at bottom */}
-        <div className="mt-auto p-4 border-t border-gray-700">
-          {isManger || isCook || isWaiter ? (
-            <div className="relative">
-              <button
-                onClick={toggleProfileMenu}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ease-out transform hover:translate-x-2 hover:scale-[1.02] hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 text-white"
-              >
-                <FaUserCircle size={20} />
-                <span className="text-sm">My Profile</span>
-              </button>
-              {showProfileMenu && (
-                <div className="absolute bottom-full left-0 w-full mb-2 bg-[#2d2927] rounded-xl shadow-lg overflow-hidden">
-                  {isManger && (
-                    <Link
-                      href="/managerProfile"
-                      onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
-                    >
-                      Profile
-                    </Link>
-                  )}
-                  {isCook && (
-                    <Link
-                      href="/cookProfile"
-                      onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
-                    >
-                      Profile
-                    </Link>
-                  )}
-                  {isWaiter && (
-                    <Link
-                      href="/waiterProfile"
-                      onClick={handleLinkClick}
-                      className="block w-full px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 text-sm"
-                    >
-                      Profile
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem("manager_token");
-                      localStorage.removeItem("cook_token");
-                      localStorage.removeItem("weater_token");
-                      // Dispatch storage event to trigger update in this component
-                      window.dispatchEvent(new Event("storage"));
-                      showToast("Sign out Successfully.", "error");
-                      router.push("/");
-                      if (window.innerWidth < 768) setIsOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-white hover:bg-orange-500 transition-all duration-300 transform hover:translate-x-2 flex items-center gap-2 text-sm"
-                  >
-                    <FaSignOutAlt /> Logout
-                  </button>
-                </div>
+              {isWaiter && (
+                <>
+                  <div className="pt-4 pb-2 px-4">
+                    <span className="text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
+                      Waiter Panel
+                    </span>
+                  </div>
+                  {waiterMenuItems.map((item) => (
+                    <NavItem key={item.path} item={item} />
+                  ))}
+                </>
               )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Link
-                href="/signinLandPage "
-                onClick={handleLinkClick}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:opacity-90 transition-opacity text-sm"
-              >
-                <FaSignInAlt />
-                <span>Sign In</span>
-              </Link>
-            </div>
-          )}
+
+              {isCook && (
+                <>
+                  <div className="pt-4 pb-2 px-4">
+                    <span className="text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
+                      Kitchen Panel
+                    </span>
+                  </div>
+                  {cookMenuItems.map((item) => (
+                    <NavItem key={item.path} item={item} />
+                  ))}
+                </>
+              )}
+            </ul>
+          </motion.nav>
         </div>
-      </div>
+
+        {/* Profile/Auth Section */}
+        <div className="p-4 mt-auto">
+          <div className="bg-[#1d1917] rounded-[2rem] p-3 border border-white/5">
+            {isManger || isCook || isWaiter ? (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FiUser className="text-white text-xl" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-white tracking-wide">
+                        Account
+                      </p>
+                      <p className="text-[10px] text-gray-500 font-medium">
+                        Manage Profile
+                      </p>
+                    </div>
+                  </div>
+                  <FiChevronRight
+                    className={`text-gray-500 transition-transform duration-300 ${
+                      showProfileMenu ? "rotate-90" : ""
+                    }`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-1 pt-1">
+                        {(isManger || isCook || isWaiter) && (
+                          <Link
+                            href={
+                              isManger
+                                ? "/managerProfile"
+                                : isCook
+                                ? "/cookProfile"
+                                : "/waiterProfile"
+                            }
+                            className="flex items-center gap-3 px-4 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                          >
+                            <FiSettings size={14} /> Profile Settings
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            localStorage.removeItem("manager_token");
+                            localStorage.removeItem("cook_token");
+                            localStorage.removeItem("weater_token");
+                            window.dispatchEvent(new Event("storage"));
+                            showToast("Sign out Successfully.", "error");
+                            router.push("/");
+                            handleLinkClick();
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                        >
+                          <FiLogOut size={14} /> Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                href="/signinLandPage"
+                className="flex items-center justify-center gap-3 w-full py-4 rounded-[1.5rem] bg-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                <FiLogIn size={18} />
+                <span>Sign In to System</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      </motion.div>
     </>
   );
 };

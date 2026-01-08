@@ -36,6 +36,21 @@ const categoryEmoji: Record<string, string> = {
   coldrinks: "🥤",
 };
 
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
+
 const MenuList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -114,15 +129,14 @@ const MenuList: React.FC = () => {
 
   if (loading)
     return (
-      <section
-        className="min-h-screen px-6 py-10"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-700">Loading Menu...</p>
-          </div>
+      <section className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 font-medium">Loading Menu...</p>
         </div>
       </section>
     );
@@ -130,252 +144,261 @@ const MenuList: React.FC = () => {
   if (error)
     return (
       <section className="bg-white min-h-screen px-6 py-10 flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg shadow-md p-6 max-w-md w-full text-center">
-          <div className="text-red-500 mb-3">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-red-50 border border-red-100 rounded-2xl shadow-xl p-8 max-w-md w-full text-center"
+        >
+          <div className="text-red-500 mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 mx-auto"
+              className="h-16 w-16 mx-auto"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeWidth={2}
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-red-700 mb-2">
+          <h3 className="text-xl font-bold text-red-700 mb-2">
             Something went wrong
           </h3>
-          <p className="text-red-600">
+          <p className="text-red-600 mb-6">
             {typeof error === "string"
               ? error
               : (error as { message?: string })?.message || "Unknown error"}
           </p>
-        </div>
-        <button
-          type="button"
-          aria-label="Add new menu item"
-          onClick={handleAddFood}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center animate-bounce"
-        >
-          <FaPlusCircle className="w-8 h-8" />
-        </button>
+          <button
+            onClick={() => dispatch(getFoodList())}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+          >
+            Try Again
+          </button>
+        </motion.div>
       </section>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <section
+    <div className="min-h-screen bg-[#f8fafc]">
+      <motion.section
         ref={menuRef}
-        className="bg-white min-h-screen px-6 py-10 relative"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="px-4 md:px-8 py-10 relative"
       >
-        <div className="max-w-6xl mx-auto">
-          {/* Header with Search */}
-          <div className="flex items-center justify-between mb-10">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 animate-pulse">
-              Menu
-            </h1>
+        <div className="max-w-7xl mx-auto">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <motion.div variants={itemVariants}>
+              <h1 className="text-4xl font-black text-gray-900 mb-2 mt-4 sm:mt-4">
+                Our <span className="text-orange-500">Menu</span>
+              </h1>
+              <p className="text-gray-500 font-medium">
+                Manage your restaurant offerings
+              </p>
+            </motion.div>
 
-            {/* Search Box */}
-            <div className="flex items-center gap-2">
-              {/* Mobile: show icon only until clicked */}
-              <div className="md:hidden">
-                {!showSearch ? (
-                  <button
-                    onClick={() => setShowSearch(true)}
-                    className="p-2 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors"
-                    aria-label="Open search"
-                  >
-                    <FaSearch className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-2 bg-white border border-orange-200 rounded-lg px-3 py-2 shadow w-full max-w-xs">
-                    <div className="flex items-center gap-2">
-                      <FaSearch className="text-orange-500" />
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search food..."
-                        className="outline-none text-sm flex-1 text-gray-700"
-                      />
-                      <button
-                        onClick={() => {
-                          setShowSearch(false);
-                          setSearchQuery("");
-                        }}
-                        className="text-gray-500 hover:text-gray-700"
-                        aria-label="Close search"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop: always show search input */}
-              <div className="hidden md:flex items-center gap-2 bg-white border border-orange-200 rounded-full px-4 py-2 shadow">
-                <FaSearch className="text-orange-500" />
+            {/* Enhanced Search Box */}
+            <motion.div variants={itemVariants} className="relative group">
+              <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm group-hover:shadow-md group-focus-within:border-orange-300 transition-all duration-300 w-full md:w-80">
+                <FaSearch className="text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search food..."
-                  className="outline-none text-sm w-48 text-gray-700"
+                  placeholder="Search dishes..."
+                  className="outline-none text-sm w-full text-gray-700 bg-transparent"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {Object.entries(grouped).length === 0 && (
-            <div className="text-center p-8 text-gray-700 animate-pulse">
-              No menu items available.
-            </div>
-          )}
-          {categoryOrder
-            .filter((cat) => grouped[cat])
-            .map((category, catIndex) => (
-              <div
-                key={category}
-                className="mb-12 opacity-0 animate-fadeIn"
-                style={{
-                  animationDelay: `${catIndex * 100}ms`,
-                  animationFillMode: "forwards",
-                }}
-              >
-                <h2 className="text-2xl font-bold text-gray-700 capitalize mb-6 border-b border-orange-200 pb-2">
-                  {categoryEmoji[category]} {category}
-                </h2>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {grouped[category].map((item, itemIndex) => (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp"
-                      style={{
-                        animationDelay: `${catIndex * 100 + itemIndex * 50}ms`,
-                        animationFillMode: "forwards",
-                      }}
-                    >
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <img
-                          src={item.foodImage}
-                          alt={item.foodName}
-                          className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
-                        />
-                        <button
-                          onClick={() => toggleMenu(item.id)}
-                          className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow transition-transform duration-200 hover:scale-110"
-                          aria-label="Menu options"
-                        >
-                          <FaEllipsisV className="text-gray-700" />
-                        </button>
-                        {openMenuId === item.id && (
-                          <div className="absolute top-10 right-2 bg-white rounded-lg shadow-lg z-10 w-32 animate-fadeIn">
-                            <button
-                              onClick={() => {
-                                handleUpdate(item.id);
-                                setOpenMenuId(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 rounded-t-lg text-orange-600 transition-colors duration-200"
-                            >
-                              <FaEdit className="text-orange-600" />
-                              <span className="text-sm">Update</span>
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleDelete(item.id);
-                                setOpenMenuId(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 rounded-b-lg text-red-600 transition-colors duration-200"
-                            >
-                              <FaTrash className="text-red-600" />
-                              <span className="text-sm">Delete</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {item.foodName}
-                        </h3>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-sm text-gray-500 capitalize">
-                            {item.type}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {item.halfPrice && (
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600">
-                                ½: ₹{item.halfPrice}
-                              </span>
-                            )}
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600">
-                              Full: ₹{item.fullPrice}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full ${
-                              item.status === "available"
-                                ? "bg-green-500"
-                                : "bg-red-500"
-                            }`}
-                          />
-                          <span className="text-sm text-gray-600 capitalize">
-                            {item.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {Object.entries(grouped).length === 0 ? (
+            <motion.div
+              variants={itemVariants}
+              className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
+            >
+              <div className="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaSearch className="text-orange-500 text-2xl" />
               </div>
-            ))}
+              <h3 className="text-xl font-bold text-gray-900 mb-1">
+                No items found
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your search or add a new item
+              </p>
+            </motion.div>
+          ) : (
+            categoryOrder
+              .filter((cat) => grouped[cat])
+              .map((category) => (
+                <motion.div
+                  key={category}
+                  variants={itemVariants}
+                  className="mb-16"
+                >
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                      {categoryEmoji[category] || "🍽️"}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 capitalize tracking-tight">
+                      {category}
+                    </h2>
+                    <div className="flex-1 h-px bg-gray-100"></div>
+                  </div>
+
+                  <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                    <AnimatePresence>
+                      {grouped[category].map((item) => (
+                        <motion.div
+                          key={item.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          whileHover={{ y: -8 }}
+                          className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300"
+                        >
+                          <div className="relative h-56 w-full overflow-hidden">
+                            <img
+                              src={item.foodImage}
+                              alt={item.foodName}
+                              className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            {/* Options Menu Toggle */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleMenu(item.id);
+                              }}
+                              className="absolute top-4 right-4 bg-white/90 backdrop-blur-md hover:bg-white rounded-2xl p-3 shadow-lg transition-all duration-200 z-20"
+                            >
+                              <FaEllipsisV className="text-gray-700" />
+                            </button>
+
+                            <AnimatePresence>
+                              {openMenuId === item.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  className="absolute top-16 right-4 bg-white rounded-2xl shadow-2xl z-30 w-40 overflow-hidden border border-gray-100"
+                                >
+                                  <button
+                                    onClick={() => {
+                                      handleUpdate(item.id);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors"
+                                  >
+                                    <FaEdit className="text-orange-500" />
+                                    <span className="text-sm font-bold">
+                                      Update
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleDelete(item.id);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors border-t border-gray-50"
+                                  >
+                                    <FaTrash className="text-red-500" />
+                                    <span className="text-sm font-bold">
+                                      Delete
+                                    </span>
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {/* Status Badge */}
+                            <div className="absolute bottom-4 left-4">
+                              <span
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
+                                  item.status === "available"
+                                    ? "bg-green-500/90 text-white"
+                                    : "bg-red-500/90 text-white"
+                                }`}
+                              >
+                                <span
+                                  className={`w-2 h-2 rounded-full bg-white ${
+                                    item.status === "available"
+                                      ? "animate-pulse"
+                                      : ""
+                                  }`}
+                                />
+                                {item.status}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                                {item.foodName}
+                              </h3>
+                              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
+                                {item.type}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
+                              {item.halfPrice && (
+                                <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
+                                  <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
+                                    Half
+                                  </p>
+                                  <p className="text-lg font-black text-orange-700">
+                                    ₹{item.halfPrice}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
+                                <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
+                                  Full
+                                </p>
+                                <p className="text-lg font-black text-white">
+                                  ₹{item.fullPrice}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              ))
+          )}
         </div>
 
-        {/* Circle plus button fixed at bottom-right corner */}
-        <button
-          type="button"
-          aria-label="Add new menu item"
+        {/* Floating Action Button */}
+        <motion.button
+          whileHover={{ scale: 1.1, rotate: 90 }}
+          whileTap={{ scale: 0.9 }}
           onClick={handleAddFood}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center animate-bounce"
+          className="fixed bottom-10 right-10 w-16 h-16 rounded-[2rem] bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-2xl shadow-orange-300 flex items-center justify-center z-40 group"
         >
-          <FaPlusCircle className="w-8 h-8" />
-        </button>
-      </section>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-        .animate-fadeInUp {
-          animation: fadeInUp 0.4s ease-in-out;
-        }
-      `}</style>
+          <FaPlusCircle className="w-8 h-8 group-hover:drop-shadow-lg transition-all" />
+        </motion.button>
+      </motion.section>
     </div>
   );
 };

@@ -1,167 +1,340 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
-import { FaUserTie, FaConciergeBell, FaUtensils } from "react-icons/fa";
+import { motion, Variants } from "framer-motion";
+import {
+  FiCoffee,
+  FiTruck,
+  FiUsers,
+  FiStar,
+  FiArrowRight,
+  FiCheckCircle,
+} from "react-icons/fi";
+import { useRouter } from "next/navigation";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 100,
+    },
+  },
+};
 
 const LandingPage: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-[#fff8f3]">
-      {/* Hero Section */}
-      <div
-        className="relative h-[600px] bg-cover bg-center"
-        style={{ backgroundImage: "url('/food-hero.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-[#ff5500]/90 to-[#ff5800]/80" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white">
-            <h1 className="text-6xl font-bold mb-4">
-              Delicious Food, Delivered Fast
-            </h1>
-            <p className="text-2xl mb-8">
-              Order your favorite meals with ease and speed.
-            </p>
-            <button className="bg-white text-[#ff5500] px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300">
-              View Menu
-            </button>
-          </div>
-        </div>
-      </div>
+  const router = useRouter();
 
-      {/* About Section */}
-      <div className="container mx-auto py-16 px-4">
-        <h2 className="text-4xl font-bold text-center mb-12 text-[#ff5500]">
-          Our Team
-        </h2>
+  return (
+    <div className="min-h-screen bg-[#f8fafc] overflow-x-hidden">
+      {/* Hero Section */}
+      <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-orange-50 rounded-l-[10rem] -z-10 transform translate-x-20 hidden lg:block" />
+        <div className="absolute top-40 left-10 w-64 h-64 bg-blue-50 rounded-full blur-3xl -z-10 opacity-60" />
+
+        <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-8 text-center lg:text-left"
+          >
+            <motion.div
+              variants={itemVariants}
+              className="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-4 py-2 rounded-full font-bold text-sm"
+            >
+              <FiStar className="fill-current" />
+              <span>Premium Dining Experience</span>
+            </motion.div>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-5xl lg:text-7xl font-black text-gray-900 leading-[1.1]"
+            >
+              Experience the Taste of <br />
+              <span className="text-orange-500">Mumtaz Chicken</span>
+            </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-gray-500 text-xl font-medium max-w-xl mx-auto lg:mx-0"
+            >
+              Where tradition meets modern culinary excellence. Order your
+              favorite meals with ease and experience lightning-fast delivery.
+            </motion.p>
+
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
+            >
+              <button
+                onClick={() => router.push("/menu")}
+                className="w-full sm:w-auto bg-orange-500 text-white px-10 py-5 rounded-3xl font-black text-lg shadow-xl shadow-orange-200 hover:bg-orange-600 hover:shadow-orange-300 transition-all duration-300 flex items-center justify-center gap-2 group"
+              >
+                Explore Menu{" "}
+                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                onClick={() => router.push("/about")}
+                className="w-full sm:w-auto bg-white text-gray-900 px-10 py-5 rounded-3xl font-black text-lg shadow-lg shadow-gray-100 border border-gray-100 hover:bg-gray-50 transition-all duration-300"
+              >
+                Our Story
+              </button>
+            </motion.div>
+
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center justify-center lg:justify-start gap-8 pt-4"
+            >
+              <div className="text-center lg:text-left">
+                <p className="text-3xl font-black text-gray-900">5k+</p>
+                <p className="text-gray-500 font-bold">Happy Clients</p>
+              </div>
+              <div className="w-px h-12 bg-gray-200" />
+              <div className="text-center lg:text-left">
+                <p className="text-3xl font-black text-gray-900">120+</p>
+                <p className="text-gray-500 font-bold">Menu Dishes</p>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative hidden lg:block"
+          >
+            <div className="relative z-10 rounded-[4rem] overflow-hidden shadow-2xl shadow-orange-200 transform hover:scale-[1.02] transition-transform duration-500">
+              <img
+                src="/food-hero.jpg"
+                alt="Delicious Mumtaz Chicken"
+                className="w-full h-[600px] object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000";
+                }}
+              />
+            </div>
+            {/* Floating Card */}
+            <motion.div
+              animate={{ y: [0, -20, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-2xl z-20 flex items-center gap-4 border border-gray-100"
+            >
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500">
+                <FiCheckCircle size={24} />
+              </div>
+              <div>
+                <p className="font-black text-gray-900 text-sm">
+                  Fastest Delivery
+                </p>
+                <p className="text-gray-500 text-xs font-bold">
+                  Under 30 Minutes
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-32 container mx-auto px-6">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="text-center mb-20"
+        >
+          <motion.p
+            variants={itemVariants}
+            className="text-orange-500 font-black tracking-widest uppercase mb-4"
+          >
+            What we offer
+          </motion.p>
+          <motion.h2
+            variants={itemVariants}
+            className="text-4xl md:text-5xl font-black text-gray-900"
+          >
+            Our Premium <span className="text-orange-500">Services</span>
+          </motion.h2>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Chef Card */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <FaUtensils className="w-10 h-10 text-[#ff5500]" />
+          {[
+            {
+              title: "Expert Chefs",
+              desc: "Crafting delicious meals with passion, expertise and secret family recipes.",
+              icon: <FiCoffee />,
+              color: "bg-orange-50 text-orange-500",
+            },
+            {
+              title: "Quick Delivery",
+              desc: "Ensuring your food arrives fresh, hot and right on time to your doorstep.",
+              icon: <FiTruck />,
+              color: "bg-blue-50 text-blue-500",
+            },
+            {
+              title: "Support Team",
+              desc: "Always ready to assist you with any queries or special requests you may have.",
+              icon: <FiUsers />,
+              color: "bg-emerald-50 text-emerald-500",
+            },
+          ].map((service, idx) => (
+            <motion.div
+              key={idx}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={itemVariants}
+              className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 hover:shadow-2xl hover:shadow-orange-100/30 transition-all duration-500 group"
+            >
+              <div
+                className={`w-16 h-16 ${service.color} rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform duration-500`}
+              >
+                {service.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Our Chefs
+              <h3 className="text-2xl font-black text-gray-900 mb-4">
+                {service.title}
               </h3>
-              <p className="text-gray-700">
-                Crafting delicious meals with passion and expertise.
+              <p className="text-gray-500 font-medium leading-relaxed">
+                {service.desc}
               </p>
-            </div>
-          </motion.div>
-
-          {/* Delivery Card */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <FaConciergeBell className="w-10 h-10 text-[#ff5500]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Delivery Heroes
-              </h3>
-              <p className="text-gray-700">
-                Ensuring your food arrives fresh and on time.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Support Card */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <FaUserTie className="w-10 h-10 text-[#ff5500]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Customer Support
-              </h3>
-              <p className="text-gray-700">
-                Always ready to assist you with any queries.
-              </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
-      </div>
-
-      {/* Features Section
-      <div className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12 text-[#ff5500]">
-            Our Services
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Luxury Accommodations
-              </h3>
-              <p className="text-gray-700">
-                Premium rooms and suites for your comfort
-              </p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                24/7 Service
-              </h3>
-              <p className="text-gray-700">Round-the-clock customer support</p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2 text-[#ff5500]">
-                Event Planning
-              </h3>
-              <p className="text-gray-700">
-                Professional event coordination services
-              </p>
-            </div>
-          </div>
-        </div>
-      </div> */}
+      </section>
 
       {/* Testimonials Section */}
-      <div className="container mx-auto py-16 px-4">
-        <h2 className="text-4xl font-bold text-center mb-12 text-[#ff5500]">
-          What Our Guests Say
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section className="py-32 bg-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-64 h-64 bg-orange-50 rounded-full blur-3xl -z-10 opacity-60 transform -translate-x-32 -translate-y-32" />
+
+        <div className="container mx-auto px-6">
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={containerVariants}
+            className="text-center mb-20"
           >
-            <p className="text-gray-700 italic mb-4">
-              Absolutely stunning hotel with impeccable service. The rooms were
-              luxurious and the staff went above and beyond to make our stay
-              comfortable.
-            </p>
-            <p className="font-semibold text-[#ff5500]">- Jane Doe</p>
+            <motion.p
+              variants={itemVariants}
+              className="text-orange-500 font-black tracking-widest uppercase mb-4"
+            >
+              Testimonials
+            </motion.p>
+            <motion.h2
+              variants={itemVariants}
+              className="text-4xl md:text-5xl font-black text-gray-900"
+            >
+              What Our <span className="text-orange-500">Guests Say</span>
+            </motion.h2>
           </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <p className="text-gray-700 italic mb-4">
-              The dining experience was exceptional! Every meal was a delight,
-              and the variety of options was impressive. Highly recommend!
-            </p>
-            <p className="font-semibold text-[#ff5500]">- John Smith</p>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-[#ff5500]"
-          >
-            <p className="text-gray-700 italic mb-4">
-              A truly relaxing spa experience. I left feeling refreshed and
-              rejuvenated. The perfect getaway!
-            </p>
-            <p className="font-semibold text-[#ff5500]">- Emily White</p>
-          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Jane Doe",
+                role: "Food Enthusiast",
+                text: "Absolutely stunning service. The chicken was perfectly cooked and the flavors were beyond my expectations!",
+                img: "https://i.pravatar.cc/150?u=jane",
+              },
+              {
+                name: "John Smith",
+                role: "Regular Customer",
+                text: "The dining experience was exceptional! Every meal was a delight, and the variety of options was impressive.",
+                img: "https://i.pravatar.cc/150?u=john",
+              },
+              {
+                name: "Emily White",
+                role: "Local Guide",
+                text: "A truly relaxing atmosphere. I left feeling refreshed and rejuvenated. The perfect place for a family dinner!",
+                img: "https://i.pravatar.cc/150?u=emily",
+              },
+            ].map((testimonial, idx) => (
+              <motion.div
+                key={idx}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={itemVariants}
+                className="bg-gray-50 p-10 rounded-[2.5rem] relative group hover:bg-white hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 border border-transparent hover:border-orange-100"
+              >
+                <div className="flex items-center gap-4 mb-8">
+                  <img
+                    src={testimonial.img}
+                    alt={testimonial.name}
+                    className="w-14 h-14 rounded-full border-2 border-white shadow-md"
+                  />
+                  <div>
+                    <p className="font-black text-gray-900">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-orange-500 text-xs font-bold uppercase tracking-wider">
+                      {testimonial.role}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-gray-600 font-medium italic leading-relaxed">
+                  {testimonial.text}
+                </p>
+                <div className="flex gap-1 mt-6">
+                  {[...Array(5)].map((_, i) => (
+                    <FiStar
+                      key={i}
+                      className="text-orange-400 fill-current"
+                      size={14}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 container mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="bg-orange-500 rounded-[4rem] p-12 md:p-20 text-center text-white relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-20 opacity-10 transform translate-x-10 -translate-y-10">
+            <FiCoffee size={300} />
+          </div>
+          <div className="relative z-10 space-y-8">
+            <h2 className="text-4xl md:text-6xl font-black">
+              Ready to taste the best?
+            </h2>
+            <p className="text-orange-100 text-xl font-medium max-w-2xl mx-auto">
+              Join thousands of happy customers and order your favorite Mumtaz
+              Chicken dish today.
+            </p>
+            <button
+              onClick={() => router.push("/menu")}
+              className="bg-white text-orange-500 px-12 py-5 rounded-3xl font-black text-xl hover:bg-orange-50 transition-all duration-300 shadow-2xl shadow-orange-900/20"
+            >
+              Order Now
+            </button>
+          </div>
+        </motion.div>
+      </section>
     </div>
   );
 };

@@ -3,7 +3,60 @@ import { fetchUsers } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiInbox } from "react-icons/fi";
+import {
+  FiInbox,
+  FiUsers,
+  FiUserCheck,
+  FiCoffee,
+  FiShield,
+  FiAlertCircle,
+  FiRefreshCw,
+} from "react-icons/fi";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+
+interface StaffMember {
+  name: string;
+  userId: string;
+}
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+      when: "afterChildren",
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 200,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
 
 export default function UserReport() {
   const dispatch = useDispatch<AppDispatch>();
@@ -20,229 +73,274 @@ export default function UserReport() {
   const totalCooks = users?.cooks.length ?? 0;
   const totalManagers = users?.managers.length ?? 0;
 
-  return (
-    <section
-      className="min-h-screen px-6 py-10"
-      style={{ backgroundColor: "#ffffff" }}
-    >
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
-          User Report
-        </h2>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
-            <div className="text-red-500 mb-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-red-700 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-red-600">
-              {typeof error === "string"
-                ? error
-                : (error as { message?: string })?.message || "Unknown error"}
-            </p>
-          </div>
-        )}
-
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-700">Loading users...</p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && !users && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <FiInbox className="h-20 w-20 mx-auto text-orange-400 mb-4" />
-              <h3 className="text-xl font-semibold text-orange-600">
-                No data fetched yet
-              </h3>
-              <p className="text-gray-600 mt-2">
-                Please wait while we fetch user data.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && users && (
-          <>
-            {/* Managers Section */}
-            <div className="mb-10">
-              <h3 className="text-xl font-semibold text-orange-600 mb-2">
-                Managers
-              </h3>
-              <hr className="border-t-1 text-orange-400 mb-4" />
-              <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-                <table className="min-w-full border-collapse bg-white">
-                  <thead>
-                    <tr className="bg-orange-500 text-white">
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User Type
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        Name
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User ID
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users?.managers.map((manager) => (
-                      <tr
-                        key={manager.userId}
-                        className="hover:bg-orange-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 text-orange-700 font-medium">
-                          Manager
-                        </td>
-                        <td className="px-6 py-4 text-orange-800 font-medium">
-                          {manager.name}
-                        </td>
-                        <td className="px-6 py-4 text-orange-600 font-medium">
-                          {manager.userId}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Waiters Section */}
-            <div className="mb-10">
-              <h3 className="text-xl font-semibold text-orange-600 mb-2">
-                Waiters
-              </h3>
-              <hr className="border-t-1 text-orange-400 mb-4" />
-              <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-                <table className="min-w-full border-collapse bg-white">
-                  <thead>
-                    <tr className="bg-orange-500 text-white">
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User Type
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        Name
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User ID
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.waiters.map((waiter) => (
-                      <tr
-                        key={waiter.userId}
-                        className="hover:bg-orange-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 text-orange-700 font-medium">
-                          Waiter
-                        </td>
-                        <td className="px-6 py-4 text-orange-800 font-medium">
-                          {waiter.name}
-                        </td>
-                        <td className="px-6 py-4 text-orange-600 font-medium">
-                          {waiter.userId}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Cooks Section */}
-            <div className="mb-10">
-              <h3 className="text-xl font-semibold text-orange-600 mb-2">
-                Cooks
-              </h3>
-              <hr className="border-t-1 text-orange-400 mb-4" />
-              <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-                <table className="min-w-full border-collapse bg-white">
-                  <thead>
-                    <tr className="bg-orange-500 text-white">
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User Type
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        Name
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold">
-                        User ID
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.cooks.map((cook) => (
-                      <tr
-                        key={cook.userId}
-                        className="hover:bg-orange-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 text-orange-700 font-medium">
-                          Cook
-                        </td>
-                        <td className="px-6 py-4 text-orange-800 font-medium">
-                          {cook.name}
-                        </td>
-                        <td className="px-6 py-4 text-orange-600 font-medium">
-                          {cook.userId}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Summary Section */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Total Waiters
-                </h3>
-                <p className="text-3xl font-bold text-orange-600">
-                  {totalWaiters}
-                </p>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Total Cooks
-                </h3>
-                <p className="text-3xl font-bold text-green-600">
-                  {totalCooks}
-                </p>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Total Managers
-                </h3>
-                <p className="text-3xl font-bold text-teal-600">
-                  {totalManagers}
-                </p>
-              </div>
-            </div>
-          </>
-        )}
+  const renderTable = (
+    title: string,
+    data: StaffMember[],
+    icon: React.ReactNode,
+    colorClass: string,
+    role: string
+  ) => (
+    <motion.div variants={itemVariants} className="mb-12">
+      <div className="flex items-center gap-4 mb-6">
+        <div
+          className={`w-12 h-12 rounded-2xl ${colorClass
+            .replace("text", "bg")
+            .replace("600", "100")} flex items-center justify-center`}
+        >
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-gray-900">{title}</h3>
+          <p className="text-gray-500 font-medium">
+            Total {title.toLowerCase()}: {data.length}
+          </p>
+        </div>
       </div>
-    </section>
+
+      <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50">
+                <th className="px-8 py-6 text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                  Role
+                </th>
+                <th className="px-8 py-6 text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                  Name
+                </th>
+                <th className="px-8 py-6 text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                  User ID
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {data.map((user) => (
+                <tr
+                  key={user.userId}
+                  className="group hover:bg-gray-50/50 transition-colors"
+                >
+                  <td className="px-8 py-6">
+                    <span
+                      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${colorClass
+                        .replace("text", "bg")
+                        .replace("600", "100")} ${colorClass}`}
+                    >
+                      {role}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="font-bold text-gray-800">{user.name}</p>
+                  </td>
+                  <td className="px-8 py-6">
+                    <code className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-600">
+                      {user.userId}
+                    </code>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <motion.section
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen bg-[#f8fafc] px-4 sm:px-8 py-12"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <motion.div variants={itemVariants}>
+            <h1 className="text-4xl font-black text-gray-900">
+              User <span className="text-orange-500">Report</span>
+            </h1>
+            <p className="text-gray-500 mt-1 font-medium">
+              Manage and monitor your restaurant staff
+            </p>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="flex gap-4">
+            <button
+              onClick={() => dispatch(fetchUsers())}
+              className="bg-white hover:bg-gray-50 text-gray-900 font-bold py-4 px-6 rounded-2xl transition-all border border-gray-100 shadow-sm flex items-center gap-2 group"
+            >
+              <FiRefreshCw className="group-hover:rotate-180 transition-transform duration-500" />
+              Refresh Data
+            </button>
+          </motion.div>
+        </div>
+
+        {/* Content Section */}
+        <AnimatePresence mode="wait">
+          {error ? (
+            <motion.div
+              key="error"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="bg-red-50 border-2 border-red-100 rounded-[2.5rem] p-12 text-center max-w-2xl mx-auto"
+            >
+              <div className="bg-red-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <FiAlertCircle className="text-red-500 text-4xl" />
+              </div>
+              <h3 className="text-2xl font-black text-red-900 mb-2">
+                Oops! Something went wrong
+              </h3>
+              <p className="text-red-600 font-medium mb-8">
+                {error || "Failed to fetch user data"}
+              </p>
+              <button
+                onClick={() => dispatch(fetchUsers())}
+                className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-red-200"
+              >
+                <FiRefreshCw /> Try Again
+              </button>
+            </motion.div>
+          ) : loading ? (
+            <motion.div
+              key="loading"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="flex flex-col items-center justify-center py-32"
+            >
+              <div className="relative">
+                <div className="w-24 h-24 border-8 border-orange-100 border-t-orange-500 rounded-full animate-spin"></div>
+                <FiUsers className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500 text-2xl" />
+              </div>
+              <p className="mt-8 text-gray-500 font-bold text-lg animate-pulse">
+                Fetching staff records...
+              </p>
+            </motion.div>
+          ) : !users ? (
+            <motion.div
+              key="empty"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="text-center py-32"
+            >
+              <div className="bg-orange-50 w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8">
+                <FiInbox className="text-orange-400 text-4xl" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-2">
+                No Staff Found
+              </h3>
+              <p className="text-gray-500 font-medium max-w-md mx-auto">
+                We couldnt find any staff records in the system.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-500"
+                >
+                  <div className="absolute top-0 right-0 p-8">
+                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <FiShield className="text-blue-500 text-2xl" />
+                    </div>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    Managers
+                  </h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black text-gray-900">
+                      {totalManagers}
+                    </span>
+                    <span className="text-xl font-bold text-gray-400 ml-2">
+                      Active
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-xl hover:shadow-orange-100/50 transition-all duration-500"
+                >
+                  <div className="absolute top-0 right-0 p-8">
+                    <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <FiUserCheck className="text-orange-500 text-2xl" />
+                    </div>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    Waiters
+                  </h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black text-gray-900">
+                      {totalWaiters}
+                    </span>
+                    <span className="text-xl font-bold text-gray-400 ml-2">
+                      Staff
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-xl hover:shadow-green-100/50 transition-all duration-500"
+                >
+                  <div className="absolute top-0 right-0 p-8">
+                    <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <FiCoffee className="text-green-500 text-2xl" />
+                    </div>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    Cooks
+                  </h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black text-gray-900">
+                      {totalCooks}
+                    </span>
+                    <span className="text-xl font-bold text-gray-400 ml-2">
+                      Kitchen
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Tables */}
+              {renderTable(
+                "Managers",
+                users.managers,
+                <FiShield className="text-blue-500 text-2xl" />,
+                "text-blue-600",
+                "Admin"
+              )}
+              {renderTable(
+                "Waiters",
+                users.waiters,
+                <FiUserCheck className="text-orange-500 text-2xl" />,
+                "text-orange-600",
+                "Service"
+              )}
+              {renderTable(
+                "Cooks",
+                users.cooks,
+                <FiCoffee className="text-green-500 text-2xl" />,
+                "text-green-600",
+                "Kitchen"
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.section>
   );
 }

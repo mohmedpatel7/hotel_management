@@ -6,6 +6,34 @@ import { addFoodItem } from "@/Redux/slices/Foodlist";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/Redux/store/store";
 import { useToast } from "@/components/Toast";
+import { motion, Variants } from "framer-motion";
+import {
+  FiPlus,
+  FiUpload,
+  FiX,
+  FiInfo,
+  FiDollarSign,
+  FiType,
+  FiGrid,
+  FiArrowLeft,
+} from "react-icons/fi";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 },
+};
 
 type ValidationErrors = {
   type?: string;
@@ -150,129 +178,181 @@ export default function AddFood() {
 
   return (
     isManager && (
-      <div className="min-h-screen bg-[#ffffff] flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-3xl">
-          <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-8 py-6">
-              <h2 className="text-2xl font-bold text-center text-white">
-                Add New Food Item
-              </h2>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 sm:p-8"
+      >
+        <div className="max-w-4xl w-full mx-auto">
+          {/* Header */}
+          <motion.div variants={itemVariants} className="text-center mb-12">
+            <div className="bg-orange-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <FiPlus className="text-orange-500 text-4xl" />
             </div>
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+              Add New <span className="text-orange-500">Dish</span>
+            </h1>
+            <p className="text-gray-500 text-lg font-medium">
+              Create a new entry for your hotels delicious menu.
+            </p>
+          </motion.div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* Image Upload */}
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">
-                  Food Image *
+          <motion.div
+            variants={itemVariants}
+            className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden"
+          >
+            <form onSubmit={handleSubmit} className="p-8 sm:p-12 space-y-8">
+              {/* Image Upload Section */}
+              <div className="flex flex-col items-center justify-center">
+                <label className="text-lg font-bold text-gray-900 mb-4 self-start">
+                  Food Image <span className="text-orange-500">*</span>
                 </label>
-                {errors.file && (
-                  <p className="text-red-500 text-sm">{errors.file}</p>
-                )}
-                {!formData.preview ? (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="w-full text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 file:text-white hover:file:opacity-90"
-                      required
-                    />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={formData.preview}
-                      alt="Food preview"
-                      className="w-48 h-48 object-cover rounded-2xl border-2 border-orange-200 mx-auto"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 p-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white rounded-full hover:opacity-90 text-sm font-bold"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
+
+                <div className="w-full">
+                  {!formData.preview ? (
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="food-image-upload"
+                        required
+                      />
+                      <label
+                        htmlFor="food-image-upload"
+                        className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all duration-300 ${
+                          errors.file
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-200 bg-gray-50 group-hover:bg-orange-50 group-hover:border-orange-200"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
+                            <FiUpload className="text-orange-500 text-3xl" />
+                          </div>
+                          <p className="mb-2 text-sm text-gray-700">
+                            <span className="font-bold">Click to upload</span>{" "}
+                            or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG or WebP (Max. 5MB)
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative w-full h-64 rounded-[2rem] overflow-hidden group shadow-lg">
+                      <img
+                        src={formData.preview}
+                        alt="Food preview"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white hover:bg-white/40 transition-all transform hover:scale-110"
+                        >
+                          <FiX size={24} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {errors.file && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1 font-medium">
+                      <FiInfo /> {errors.file}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {/* Food Name */}
-              <div>
-                <label className="block font-semibold text-gray-800 mb-2">
-                  Food Name *
-                </label>
-                <input
-                  type="text"
-                  name="foodName"
-                  value={formData.foodName}
-                  onChange={handleChange}
-                  placeholder="e.g., Margherita Pizza"
-                  className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
-                  required
-                />
-                {errors.foodName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.foodName}</p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Food Name */}
+                <div className="md:col-span-2">
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <FiInfo className="text-orange-500" /> Food Name{" "}
+                    <span className="text-orange-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="foodName"
+                    value={formData.foodName}
+                    onChange={handleChange}
+                    placeholder="e.g., Margherita Special Pizza"
+                    className={`w-full bg-gray-50 border-2 rounded-2xl px-6 py-4 outline-none transition-all duration-300 text-gray-900 font-medium ${
+                      errors.foodName
+                        ? "border-red-200 focus:border-red-500"
+                        : "border-gray-100 focus:border-orange-500 focus:bg-white"
+                    }`}
+                    required
+                  />
+                  {errors.foodName && (
+                    <p className="text-red-500 text-sm mt-1 font-medium">
+                      {errors.foodName}
+                    </p>
+                  )}
+                </div>
 
-              {/* Type & Category */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Type */}
                 <div>
-                  <label className="block font-semibold text-gray-800 mb-2">
-                    Type *
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <FiType className="text-orange-500" /> Type{" "}
+                    <span className="text-orange-500">*</span>
                   </label>
                   <select
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
+                    className={`w-full bg-gray-50 border-2 rounded-2xl px-6 py-4 outline-none transition-all duration-300 text-gray-900 font-medium appearance-none cursor-pointer ${
+                      errors.type
+                        ? "border-red-200 focus:border-red-500"
+                        : "border-gray-100 focus:border-orange-500 focus:bg-white"
+                    }`}
                     required
                   >
                     <option value="">Select Type</option>
                     <option value="veg">🥗 Veg</option>
                     <option value="non-veg">🍗 Non-Veg</option>
                   </select>
-                  {errors.type && (
-                    <p className="text-red-500 text-sm mt-1">{errors.type}</p>
-                  )}
                 </div>
 
+                {/* Category */}
                 <div>
-                  <label className="block font-semibold text-gray-800 mb-2">
-                    Category *
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <FiGrid className="text-orange-500" /> Category{" "}
+                    <span className="text-orange-500">*</span>
                   </label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 px-4 py-2"
+                    className={`w-full bg-gray-50 border-2 rounded-2xl px-6 py-4 outline-none transition-all duration-300 text-gray-900 font-medium appearance-none cursor-pointer ${
+                      errors.category
+                        ? "border-red-200 focus:border-red-500"
+                        : "border-gray-100 focus:border-orange-500 focus:bg-white"
+                    }`}
                     required
                   >
                     <option value="">Select Category</option>
-                    <option value="soups">🍲Soups</option>
+                    <option value="soups">🍲 Soups</option>
                     <option value="rice">🍚 Rice</option>
                     <option value="roti">🫓 Roti/Bread</option>
                     <option value="curry">🍛 Curry</option>
                     <option value="starter">🍢 Starter</option>
                     <option value="dessert">🍰 Dessert</option>
-                    <option value="coldrinks">🍹Cold Drinks</option>
+                    <option value="coldrinks">🍹 Cold Drinks</option>
                   </select>
-                  {errors.category && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.category}
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              {/* Half & Full Price */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Half Price */}
                 <div>
-                  <label className="block font-semibold text-gray-800 mb-2">
-                    Half Price (Optional)
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <FiDollarSign className="text-orange-500" /> Half Price
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-800">
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
                       ₹
                     </span>
                     <input
@@ -282,17 +362,19 @@ export default function AddFood() {
                       onChange={handleChange}
                       placeholder="0"
                       min={0}
-                      className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-orange-500 focus:bg-white transition-all duration-300 text-gray-900 font-medium"
                     />
                   </div>
                 </div>
 
+                {/* Full Price */}
                 <div>
-                  <label className="block font-semibold text-gray-800 mb-2">
-                    Full Price *
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <FiDollarSign className="text-orange-500" /> Full Price{" "}
+                    <span className="text-orange-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-800">
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
                       ₹
                     </span>
                     <input
@@ -302,12 +384,16 @@ export default function AddFood() {
                       onChange={handleChange}
                       placeholder="0"
                       min={0}
-                      className="w-full rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:border-orange-500 text-gray-800 pl-8 pr-4 py-2"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl pl-12 pr-6 py-4 outline-none transition-all duration-300 text-gray-900 font-medium ${
+                        errors.fullPrice
+                          ? "border-red-200 focus:border-red-500"
+                          : "border-gray-100 focus:border-orange-500 focus:bg-white"
+                      }`}
                       required
                     />
                   </div>
                   {errors.fullPrice && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="text-red-500 text-sm mt-1 font-medium">
                       {errors.fullPrice}
                     </p>
                   )}
@@ -315,31 +401,47 @@ export default function AddFood() {
               </div>
 
               {/* Action Buttons */}
-
-              <div className="mt-8 flex justify-end gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
                 <button
-                  onClick={clearForm}
-                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                  type="button"
+                  onClick={() => router.back()}
+                  className="w-full sm:w-auto px-8 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  Cancel
+                  <FiArrowLeft /> Back to Menu
+                </button>
+                <div className="flex-1" />
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  className="w-full sm:w-auto px-8 py-4 text-gray-500 font-bold hover:text-gray-900 transition-colors"
+                >
+                  Clear Form
                 </button>
                 <button
+                  type="submit"
                   disabled={loading}
-                  className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
+                  className="w-full sm:w-auto px-12 py-4 bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-200 hover:bg-orange-600 hover:shadow-orange-300 transition-all duration-300 flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:shadow-none"
                 >
-                  {loading && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <FiPlus /> Add Food Item
+                    </>
                   )}
-                  Add
                 </button>
               </div>
             </form>
-          </div>
-          <p className="text-center text-xs text-gray-800 mt-6">
-            * Required fields
-          </p>
+          </motion.div>
+
+          <motion.p
+            variants={itemVariants}
+            className="text-center text-sm text-gray-400 mt-8"
+          >
+            * Required fields must be filled to list the item in menu.
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
     )
   );
 }

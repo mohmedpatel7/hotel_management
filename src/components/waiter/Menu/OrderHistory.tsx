@@ -10,6 +10,40 @@ import { deleteOrder } from "@/Redux/slices/Order";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/Redux/store/store";
 import { Trash2 } from "lucide-react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+import {
+  FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiRefreshCw,
+  FiGrid,
+  FiTrash2,
+  FiUser,
+  FiInfo,
+} from "react-icons/fi";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 200,
+    },
+  },
+};
 
 const GET_ORDERS_BY_WAITER_ID = gql`
   query GetOrdersByWaiterId($weaterId: String!) {
@@ -203,252 +237,315 @@ export default function OrderHistory() {
   const filteredOrders = orders.filter((o) => o.status === statusFilter);
 
   return (
-    authStatus === "ok" && (
-      <section
-        className="min-h-screen px-6 py-10"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-orange-600 md:mt-0 mt-6 text-center md:text-left">
-            Order History
-          </h1>
-
-          <div className="mb-6 flex flex-wrap gap-2 items-center">
-            {(
-              [
-                {
-                  key: "pending",
-                  label: "Pending",
-                  count: pendingOrders.length,
-                },
-                {
-                  key: "completed",
-                  label: "Completed",
-                  count: completedOrders.length,
-                },
-                {
-                  key: "cancelled",
-                  label: "Cancelled",
-                  count: cancelledOrders.length,
-                },
-              ] as const
-            ).map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setStatusFilter(item.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                  statusFilter === item.key
-                    ? "bg-orange-500 text-white border-orange-500"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                {item.label} ({item.count})
-              </button>
-            ))}
-
-            <button
-              onClick={refreshData}
-              className="ml-auto px-4 py-2 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+    <AnimatePresence>
+      {authStatus === "ok" && (
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="min-h-screen px-4 sm:px-8 py-10 bg-[#f8fafc]"
+        >
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              variants={itemVariants}
+              className="mb-12 text-center md:text-left"
             >
-              Refresh
-            </button>
-          </div>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">
+                    Order <span className="text-orange-500">History</span>
+                  </h1>
+                  <p className="text-gray-500 font-medium">
+                    Track your placed orders and their current status.
+                  </p>
+                </div>
+                <button
+                  onClick={refreshData}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 text-gray-700 font-bold hover:shadow-md transition-all active:scale-95 group"
+                >
+                  <FiRefreshCw
+                    className={`w-5 h-5 group-hover:rotate-180 transition-transform duration-500 ${
+                      loading ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh
+                </button>
+              </div>
+            </motion.div>
 
-          {orders.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
-              No orders found.
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center text-gray-600">
-              No {statusFilter} orders found.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredOrders.map((order, index) => {
-                const imageUrl = normalizeImageUrl(order.food?.foodImage);
-
-                const headerClass =
-                  order.status === "completed"
-                    ? "from-green-400 via-green-500 to-green-600"
-                    : order.status === "cancelled"
-                    ? "from-red-400 via-red-500 to-red-600"
-                    : "from-orange-400 via-orange-500 to-orange-600";
-
-                const statusClass =
-                  order.status === "pending"
-                    ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                    : order.status === "completed"
-                    ? "bg-green-100 text-green-800 border-green-300"
-                    : "bg-red-100 text-red-800 border-red-300";
-
-                return (
-                  <div
-                    key={
-                      order._id || `${order.food?.foodName ?? "order"}-${index}`
-                    }
-                    className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+            <motion.div
+              variants={itemVariants}
+              className="mb-8 flex flex-wrap gap-3"
+            >
+              {(
+                [
+                  {
+                    key: "pending",
+                    label: "Pending",
+                    count: pendingOrders.length,
+                    icon: <FiClock className="w-4 h-4" />,
+                    activeClass: "bg-orange-500 text-white shadow-orange-200",
+                  },
+                  {
+                    key: "completed",
+                    label: "Completed",
+                    count: completedOrders.length,
+                    icon: <FiCheckCircle className="w-4 h-4" />,
+                    activeClass: "bg-emerald-500 text-white shadow-emerald-200",
+                  },
+                  {
+                    key: "cancelled",
+                    label: "Cancelled",
+                    count: cancelledOrders.length,
+                    icon: <FiXCircle className="w-4 h-4" />,
+                    activeClass: "bg-red-500 text-white shadow-red-200",
+                  },
+                ] as const
+              ).map((item) => (
+                <motion.button
+                  key={item.key}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStatusFilter(item.key)}
+                  className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all duration-300 shadow-sm border ${
+                    statusFilter === item.key
+                      ? `${item.activeClass} border-transparent shadow-lg scale-105`
+                      : "bg-white text-gray-600 border-gray-100 hover:bg-gray-50"
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                  <span
+                    className={`ml-1 px-2 py-0.5 rounded-lg text-xs transition-colors ${
+                      statusFilter === item.key ? "bg-white/20" : "bg-gray-100"
+                    }`}
                   >
-                    <div
-                      className={`bg-gradient-to-r ${headerClass} px-4 py-3 flex items-start justify-between gap-3`}
+                    {item.count}
+                  </span>
+                </motion.button>
+              ))}
+            </motion.div>
+
+            {orders.length === 0 ? (
+              <motion.div
+                variants={itemVariants}
+                className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-20 text-center"
+              >
+                <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <FiGrid className="text-gray-300 text-4xl" />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-2">
+                  No orders found
+                </h3>
+                <p className="text-gray-500 font-medium">
+                  You havent placed any orders yet.
+                </p>
+              </motion.div>
+            ) : filteredOrders.length === 0 ? (
+              <motion.div
+                variants={itemVariants}
+                className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-20 text-center"
+              >
+                <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <FiGrid className="text-gray-300 text-4xl" />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-2">
+                  No {statusFilter} orders
+                </h3>
+                <p className="text-gray-500 font-medium">
+                  There are no orders with this status in your history.
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {filteredOrders.map((order, index) => {
+                  const imageUrl = normalizeImageUrl(order.food?.foodImage);
+
+                  const statusConfig = {
+                    pending: {
+                      bg: "bg-orange-50",
+                      text: "text-orange-600",
+                      border: "border-orange-100",
+                    },
+                    completed: {
+                      bg: "bg-emerald-50",
+                      text: "text-emerald-600",
+                      border: "border-emerald-100",
+                    },
+                    cancelled: {
+                      bg: "bg-red-50",
+                      text: "text-red-600",
+                      border: "border-red-100",
+                    },
+                  }[order.status];
+
+                  return (
+                    <motion.div
+                      key={order._id || index}
+                      variants={itemVariants}
+                      whileHover={{ y: -8 }}
+                      className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden group hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500"
                     >
-                      <div className="text-white min-w-0">
-                        <div className="text-base font-semibold truncate">
-                          {order.food?.foodName}
+                      <div className="p-8">
+                        <div className="flex items-center justify-between mb-6">
+                          <span
+                            className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-colors ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                          >
+                            {order.status}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400 text-xs font-bold bg-gray-50 px-2 py-1 rounded-lg">
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleTimeString(
+                                    [],
+                                    { hour: "2-digit", minute: "2-digit" }
+                                  )
+                                : "N/A"}
+                            </span>
+                            {order.status === "pending" && (
+                              <button
+                                onClick={() => openDeleteModal(order)}
+                                disabled={deletingId === order._id}
+                                className="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90 disabled:opacity-50 shadow-sm"
+                              >
+                                {deletingId === order._id ? (
+                                  <FiRefreshCw className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FiTrash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-xs text-white/90 truncate">
-                          Table {order.tableNo} • {order.food?.category} •{" "}
-                          {order.food?.type}
+
+                        <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-gray-50">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={order.food?.foodName}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <FiGrid className="text-gray-200 text-4xl" />
+                            </div>
+                          )}
+                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm">
+                            <span className="text-gray-900 font-black">
+                              ₹{order.price}
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-xs text-white/90 truncate">
-                          Date:{" "}
-                          {order.createdAt
-                            ? new Date(order.createdAt).toDateString()
-                            : "N/A"}
+
+                        <div className="mb-6">
+                          <h3 className="text-xl font-black text-gray-900 mb-2 truncate">
+                            {order.food?.foodName}
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-bold rounded-lg border border-gray-100 capitalize">
+                              {order.food?.category}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-bold rounded-lg border border-gray-100 capitalize">
+                              {order.food?.type}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                            <span className="text-orange-600 text-[10px] font-black block uppercase tracking-wider mb-1">
+                              Quantity
+                            </span>
+                            <span className="text-orange-900 font-black text-xl leading-none">
+                              {order.quntity}
+                            </span>
+                          </div>
+                          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                            <span className="text-blue-600 text-[10px] font-black block uppercase tracking-wider mb-1">
+                              Table
+                            </span>
+                            <span className="text-blue-900 font-black text-xl leading-none">
+                              #{order.tableNo}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <div className="text-xs bg-black/20 px-2.5 py-0.5 rounded-full text-white">
-                          ₹{order.price}
-                        </div>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/90 ${statusClass}`}
-                        >
-                          {order.status}
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
+
+            <AnimatePresence>
+              {deleteModalOpen && selectedOrder && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={closeDeleteModal}
+                    className="absolute inset-0 bg-gray-900/40 backdrop-blur-md"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-10 opacity-5 transform translate-x-4 -translate-y-4">
+                      <FiTrash2 size={120} />
+                    </div>
+
+                    <div className="relative z-10 text-center">
+                      <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <FiTrash2 className="text-red-500 text-4xl" />
+                      </div>
+                      <h2 className="text-3xl font-black text-gray-900 mb-2">
+                        Confirm <span className="text-red-500">Delete</span>
+                      </h2>
+                      <p className="text-gray-500 font-medium mb-8">
+                        Are you sure you want to delete this order for{" "}
+                        <span className="text-gray-900 font-bold">
+                          {selectedOrder.food.foodName}
+                        </span>{" "}
+                        on table{" "}
+                        <span className="text-gray-900 font-bold">
+                          #{selectedOrder.tableNo}
                         </span>
+                        ?
+                      </p>
+
+                      <div className="flex gap-4">
                         <button
-                          type="button"
-                          onClick={() => openDeleteModal(order)}
-                          disabled={deletingId === order._id}
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/30 bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                          aria-label="Delete order"
-                          title="Delete order"
+                          onClick={closeDeleteModal}
+                          className="flex-1 px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors"
                         >
-                          {deletingId === order._id ? (
-                            <div className="h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDelete}
+                          disabled={deletingId === selectedOrder._id}
+                          className="flex-[2] px-6 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {deletingId === selectedOrder._id && (
+                            <FiRefreshCw className="animate-spin" />
                           )}
+                          {deletingId === selectedOrder._id
+                            ? "Deleting..."
+                            : "Delete Order"}
                         </button>
                       </div>
                     </div>
-
-                    <div className="p-2">
-                      <div className="relative w-3/4 mx-auto pt-[75%] rounded-lg bg-gray-100 overflow-hidden">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={order.food?.foodName ?? "Food"}
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-700">
-                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                          <div className="text-gray-500 text-[11px]">
-                            Quantity
-                          </div>
-                          <div className="font-semibold">{order.quntity}</div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                          <div className="text-gray-500 text-[11px]">
-                            Waiter
-                          </div>
-                          <div className="font-semibold truncate">
-                            {order.weater?.name}
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                          <div className="text-gray-500 text-[11px]">
-                            Category
-                          </div>
-                          <div className="font-semibold truncate">
-                            {order.food?.category}
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg px-2 py-1.5">
-                          <div className="text-gray-500 text-[11px]">Type</div>
-                          <div className="font-semibold truncate">
-                            {order.food?.type}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {deleteModalOpen && selectedOrder && (
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-              <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-modalScale">
-                <h3 className="text-xl font-bold text-red-600 mb-4">
-                  Confirm Delete
-                </h3>
-                <p className="text-gray-700 mb-6">
-                  Are you sure you want to delete this order for{" "}
-                  <span className="font-semibold">
-                    {selectedOrder.food.foodName}
-                  </span>{" "}
-                  on table {selectedOrder.tableNo}?
-                </p>
-                <div className="mt-8 flex justify-end gap-4">
-                  <button
-                    onClick={closeDeleteModal}
-                    className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirmDelete}
-                    disabled={deletingId === selectedOrder._id}
-                    className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
-                    type="button"
-                  >
-                    {deletingId === selectedOrder._id && (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    )}
-                    Delete
-                  </button>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <style jsx>{`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-            }
-            to {
-              opacity: 1;
-            }
-          }
-          @keyframes modalScale {
-            from {
-              opacity: 0;
-              transform: scale(0.95) translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1) translateY(0);
-            }
-          }
-          .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out;
-          }
-          .animate-modalScale {
-            animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          }
-        `}</style>
-      </section>
-    )
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.section>
+      )}
+    </AnimatePresence>
   );
 }

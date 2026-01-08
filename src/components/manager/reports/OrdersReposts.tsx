@@ -3,9 +3,28 @@ import { fetchOrdersReport } from "@/Redux/slices/Manager";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FiInbox } from "react-icons/fi";
+import {
+  FiInbox,
+  FiDownload,
+  FiSearch,
+  FiCalendar,
+  FiTrash2,
+} from "react-icons/fi";
 import jsPDF from "jspdf";
-// jspdf-autotable is imported dynamically in handleDownloadPDF to avoid build-time resolution issues
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 function formatDateLocal(date: Date): string {
   const year = date.getFullYear();
@@ -135,241 +154,280 @@ export default function OrdersReports() {
   };
 
   return (
-    <section
-      className="min-h-screen px-4 sm:px-6 py-10"
-      style={{ backgroundColor: "#ffffff" }}
-    >
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-orange-600 mt-6 sm:mt-0 text-center md:text-left">
-          Orders Report
-        </h2>
+    <div className="min-h-screen bg-[#f8fafc]">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <h1 className="text-4xl font-black text-gray-900">
+              Orders <span className="text-orange-500">Report</span>
+            </h1>
+            <p className="text-gray-500 mt-1 font-medium">
+              Analyze your restaurants sales performance
+            </p>
+          </motion.div>
 
-        {/* Date filters & actions */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6 sm:mb-8">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From
-            </label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 bg-white shadow-sm transition"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              To
-            </label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 bg-white shadow-sm transition"
-            />
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-3 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition"
-            >
-              Submit
-            </button>
-            <button
-              onClick={handleClear}
-              className="px-4 py-3 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-            >
-              Clear
-            </button>
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-wrap gap-3"
+          >
             <button
               onClick={handleDownloadPDF}
               disabled={!ordersReport || orders.length === 0}
-              className={`px-4 py-3 rounded-xl text-white transition ${
-                !ordersReport || orders.length === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600"
-              }`}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-gray-100 text-gray-700 font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <FiDownload className="text-orange-500" />
               Download PDF
             </button>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Error state */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 max-w-md mx-auto text-center mb-8">
-            <div className="text-red-500 mb-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        {/* Filters */}
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="bg-white p-6 sm:p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-12"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                From Date
+              </label>
+              <div className="relative">
+                <FiCalendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold"
                 />
-              </svg>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-red-700 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-red-600">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                To Date
+              </label>
+              <div className="relative">
+                <FiCalendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSubmit}
+                className="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white py-4 rounded-2xl font-black shadow-xl shadow-orange-200 hover:bg-orange-600 transition-all"
+              >
+                <FiSearch />
+                Generate
+              </button>
+              <button
+                onClick={handleClear}
+                className="px-6 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-all"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-8 border border-red-50 text-center mb-12"
+          >
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiTrash2 className="text-red-500 text-3xl" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
+            <p className="text-gray-600 mb-8">
               {typeof error === "string"
                 ? error
-                : (error as { message?: string })?.message || "Unknown error"}
+                : (error as { message?: string })?.message ||
+                  "Failed to load report"}
             </p>
-          </div>
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200"
+            >
+              Try Again
+            </button>
+          </motion.div>
         )}
 
-        {/* Loading state */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-700">Loading orders...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-20">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mb-4"
+            />
+            <p className="text-gray-600 font-medium">Fetching Report Data...</p>
           </div>
         )}
 
-        {/* Empty states */}
-        {!loading && !error && !ordersReport && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <FiInbox className="h-20 w-20 mx-auto text-orange-400 mb-4" />
-              <h3 className="text-xl font-semibold text-orange-600">
-                No data fetched yet
-              </h3>
-              <p className="text-gray-600 mt-2">
-                Please select a date range to view orders.
-              </p>
+        {!loading && !error && (!ordersReport || orders.length === 0) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100"
+          >
+            <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+              <FiInbox className="text-orange-200 text-4xl" />
             </div>
-          </div>
+            <h3 className="text-xl font-bold text-gray-800">
+              No data to display
+            </h3>
+            <p className="text-gray-500 mt-2 font-medium">
+              Select a date range to generate a report
+            </p>
+          </motion.div>
         )}
 
-        {!loading && !error && ordersReport && orders.length === 0 && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <FiInbox className="h-20 w-20 mx-auto text-orange-400 mb-4" />
-              <h3 className="text-xl font-semibold text-orange-400">
-                No orders found
-              </h3>
-              <p className="text-gray-600 mt-2">
-                No orders found for the selected period.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Results section */}
         {!loading && !error && ordersReport && orders.length > 0 && (
-          <>
-            {/* Table wrapper with horizontal scroll on small screens */}
-            <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-              <table className="min-w-full border-collapse bg-white">
-                <thead>
-                  <tr className="bg-orange-500 text-white">
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Food Name
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Price
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Table No.
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Created At
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Order Status
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold">
-                      Waiter
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr
-                      key={order._id}
-                      className="hover:bg-orange-50 transition-colors"
-                    >
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-blue-700 font-medium">
-                        {order.food?.foodName ?? "—"}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-green-600 font-semibold">
-                        {order?.price ? `₹${order.price}` : "—"}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-purple-600 text-center font-medium">
-                        {order?.tableNo ?? "—"}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-indigo-700 whitespace-nowrap font-medium">
-                        {new Date(order.createdAt).toLocaleString()}
-                      </td>
-                      <td
-                        className={`px-4 sm:px-6 py-3 sm:py-4 capitalize font-semibold ${
-                          order?.status === "pending"
-                            ? "text-yellow-600"
-                            : order?.status === "completed"
-                            ? "text-green-600"
-                            : order?.status === "cancelled"
-                            ? "text-red-600"
-                            : "text-gray-800"
-                        }`}
-                      >
-                        {order?.status ?? "—"}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-teal-700 font-medium">
-                        {order?.weater?.name ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8"
+          >
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  label: "Total Orders",
+                  value: totalOrders,
+                  color: "text-orange-500",
+                  bg: "bg-orange-50",
+                },
+                {
+                  label: "Total Revenue",
+                  value: `₹${totalPrice.toFixed(2)}`,
+                  color: "text-green-500",
+                  bg: "bg-green-50",
+                },
+                {
+                  label: "Completed",
+                  value: completedOrders,
+                  color: "text-blue-500",
+                  bg: "bg-blue-50",
+                },
+                {
+                  label: "Pending",
+                  value: pendingOrders,
+                  color: "text-yellow-500",
+                  bg: "bg-yellow-50",
+                },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  variants={itemVariants}
+                  className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm"
+                >
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    {stat.label}
+                  </p>
+                  <p className={`text-3xl font-black ${stat.color}`}>
+                    {stat.value}
+                  </p>
+                </motion.div>
+              ))}
             </div>
 
-            {/* Summary cards */}
-            <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                  Total Orders
-                </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-orange-600">
-                  {totalOrders}
-                </p>
+            {/* Table */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden"
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/50">
+                      {[
+                        "Food Name",
+                        "Price",
+                        "Table No.",
+                        "Created At",
+                        "Status",
+                        "Waiter",
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-8 py-6 text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {orders.map((order) => (
+                      <tr
+                        key={order._id}
+                        className="group hover:bg-gray-50/50 transition-colors"
+                      >
+                        <td className="px-8 py-6">
+                          <p className="font-bold text-gray-800">
+                            {order.food?.foodName ?? "—"}
+                          </p>
+                        </td>
+                        <td className="px-8 py-6">
+                          <p className="font-black text-green-600">
+                            ₹{order?.price ?? "—"}
+                          </p>
+                        </td>
+                        <td className="px-8 py-6 text-center">
+                          <span className="px-4 py-2 bg-purple-50 text-purple-600 rounded-xl font-bold text-sm">
+                            {order?.tableNo ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-8 py-6 whitespace-nowrap">
+                          <p className="text-gray-500 font-medium text-sm">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                            <span className="block text-xs text-gray-400">
+                              {new Date(order.createdAt).toLocaleTimeString()}
+                            </span>
+                          </p>
+                        </td>
+                        <td className="px-8 py-6">
+                          <span
+                            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider ${
+                              order?.status === "completed"
+                                ? "bg-green-50 text-green-600"
+                                : order?.status === "pending"
+                                ? "bg-yellow-50 text-yellow-600"
+                                : "bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {order?.status ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-8 py-6">
+                          <p className="font-bold text-gray-700">
+                            {order?.weater?.name ?? "—"}
+                          </p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                  Total Revenue
-                </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                  ₹{totalPrice.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                  Pending
-                </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-yellow-600">
-                  {pendingOrders}
-                </p>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 text-center">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                  Completed
-                </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                  {completedOrders}
-                </p>
-              </div>
-            </div>
-          </>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

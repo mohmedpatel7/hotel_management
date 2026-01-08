@@ -5,9 +5,16 @@ import { getFoodListForWaiter } from "@/Redux/slices/Foodlist";
 import { createOrder } from "@/Redux/slices/Order";
 import { fetchTables } from "@/Redux/slices/Table";
 import { RootState, AppDispatch } from "@/Redux/store/store";
-import { FaSearch } from "react-icons/fa";
+import {
+  FaSearch,
+  FaTimes,
+  FaUtensils,
+  FaCheckCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/Toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const categoryOrder = [
   "soups",
@@ -22,6 +29,7 @@ const categoryOrder = [
 ];
 
 const categoryEmoji: Record<string, string> = {
+  soups: "🥣",
   starter: "🍢",
   curry: "🍛",
   biryani: "🍲",
@@ -30,6 +38,19 @@ const categoryEmoji: Record<string, string> = {
   dessert: "🍰",
   beverage: "🥤",
   coldrinks: "🥤",
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
 };
 
 const MenuList: React.FC = () => {
@@ -46,8 +67,6 @@ const MenuList: React.FC = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [localFoodItems, setLocalFoodItems] = useState(foodItemsForWaiter);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [selectedFoodItem, setSelectedFoodItem] = useState<{
@@ -82,12 +101,6 @@ const MenuList: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (showSearch) {
-      searchInputRef.current?.focus();
-    }
-  }, [showSearch]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -161,321 +174,408 @@ const MenuList: React.FC = () => {
 
   if (loading)
     return (
-      <section
-        className="min-h-screen px-6 py-10"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-700">Loading Menu...</p>
-          </div>
+      <section className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 font-medium">Loading Menu...</p>
         </div>
       </section>
     );
 
   if (error)
     return (
-      <section className="bg-white min-h-screen px-6 py-10 flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg shadow-md p-6 max-w-md w-full text-center">
-          <div className="text-red-500 mb-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+      <section className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-red-50 text-center">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FaExclamationTriangle className="text-red-500 text-3xl" />
           </div>
-          <h3 className="text-lg font-semibold text-red-700 mb-2">
-            Something went wrong
-          </h3>
-          <p className="text-red-600">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Failed to Load
+          </h2>
+          <p className="text-gray-600 mb-8">
             {typeof error === "string"
               ? error
-              : (error as { message?: string })?.message || "Unknown error"}
+              : (error as { message?: string })?.message ||
+                "Something went wrong while fetching the menu."}
           </p>
+          <button
+            onClick={() => dispatch(getFoodListForWaiter())}
+            className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95"
+          >
+            Try Again
+          </button>
         </div>
       </section>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-[#f8fafc]">
       <section
         ref={menuRef}
-        className="bg-white min-h-screen px-6 py-10 relative"
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12"
       >
-        <div className="max-w-6xl mx-auto">
-          {/* Header with Search */}
-          <div className="flex items-center justify-between mb-10">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 animate-pulse">
-              Menu
+        {/* Header with Search */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <h1 className="text-4xl font-black text-gray-900">
+              Our <span className="text-orange-500">Menu</span>
             </h1>
+            <p className="text-gray-500 mt-1 font-medium">
+              Select items to place orders for tables
+            </p>
+          </motion.div>
 
-            {/* Search Box */}
-            <div className="flex items-center gap-2">
-              {/* Mobile: show icon only until clicked */}
-              <div className="md:hidden">
-                {!showSearch ? (
-                  <button
-                    onClick={() => setShowSearch(true)}
-                    className="p-2 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors"
-                    aria-label="Open search"
-                  >
-                    <FaSearch className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-2 bg-white border border-orange-200 rounded-lg px-3 py-2 shadow w-full max-w-xs">
-                    <div className="flex items-center gap-2">
-                      <FaSearch className="text-orange-500" />
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search food..."
-                        className="outline-none text-sm flex-1 text-gray-700"
-                      />
-                      <button
-                        onClick={() => {
-                          setShowSearch(false);
-                          setSearchQuery("");
-                        }}
-                        className="text-gray-500 hover:text-gray-700"
-                        aria-label="Close search"
-                      >
-                        ×
-                      </button>
+          <motion.div variants={itemVariants} className="relative group">
+            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm group-hover:shadow-md group-focus-within:border-orange-300 transition-all duration-300 w-full md:w-80">
+              <FaSearch className="text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search dishes..."
+                className="outline-none text-sm w-full text-gray-700 bg-transparent"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {Object.entries(grouped).length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
+          >
+            <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+              <FaUtensils className="text-orange-200 text-3xl" />
+            </div>
+            <p className="text-gray-500 font-medium">
+              No menu items found matching your search.
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {categoryOrder
+              .filter((cat) => grouped[cat])
+              .map((category) => (
+                <motion.div
+                  key={category}
+                  variants={itemVariants}
+                  className="mb-16 last:mb-0"
+                >
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-2xl">
+                      {categoryEmoji[category] || "🍽️"}
                     </div>
+                    <h2 className="text-2xl font-bold text-gray-800 capitalize">
+                      {category}
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                   </div>
-                )}
-              </div>
 
-              {/* Desktop: always show search input */}
-              <div className="hidden md:flex items-center gap-2 bg-white border border-orange-200 rounded-full px-4 py-2 shadow">
-                <FaSearch className="text-orange-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search food..."
-                  className="outline-none text-sm w-48 text-gray-700"
-                />
-              </div>
-            </div>
-          </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {grouped[category].map((item) => (
+                      <motion.div
+                        key={item.id}
+                        layout
+                        whileHover={{ y: -8 }}
+                        onClick={() => {
+                          if (item.status === "available") {
+                            setSelectedFoodItem({
+                              _id: item.id,
+                              foodName: item.foodName,
+                              halfPrice: item.halfPrice
+                                ? Number(item.halfPrice)
+                                : undefined,
+                              fullPrice: Number(item.fullPrice),
+                            });
+                            setIsOrderModalOpen(true);
+                          } else {
+                            showToast(
+                              "This item is currently unavailable",
+                              "error"
+                            );
+                          }
+                        }}
+                        className={`group bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 cursor-pointer relative ${
+                          item.status !== "available"
+                            ? "opacity-75 grayscale-[0.5]"
+                            : ""
+                        }`}
+                      >
+                        <div className="relative h-56 overflow-hidden">
+                          <img
+                            src={item.foodImage}
+                            alt={item.foodName}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
-          {Object.entries(grouped).length === 0 && (
-            <div className="text-center p-8 text-gray-700 animate-pulse">
-              No menu items available.
-            </div>
-          )}
-          {categoryOrder
-            .filter((cat) => grouped[cat])
-            .map((category, catIndex) => (
-              <div
-                key={category}
-                className="mb-12 opacity-0 animate-fadeIn"
-                style={{
-                  animationDelay: `${catIndex * 100}ms`,
-                  animationFillMode: "forwards",
-                }}
-              >
-                <h2 className="text-2xl font-bold text-gray-700 capitalize mb-6 border-b border-orange-200 pb-2">
-                  {categoryEmoji[category]} {category}
-                </h2>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {grouped[category].map((item, itemIndex) => (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden relative opacity-0 animate-fadeInUp cursor-pointer"
-                      onClick={() => {
-                        setSelectedFoodItem({
-                          _id: item.id,
-                          foodName: item.foodName,
-                          halfPrice: item.halfPrice
-                            ? Number(item.halfPrice)
-                            : undefined,
-                          fullPrice: Number(item.fullPrice),
-                        });
-                        setIsOrderModalOpen(true);
-                      }}
-                      style={{
-                        animationDelay: `${catIndex * 100 + itemIndex * 50}ms`,
-                        animationFillMode: "forwards",
-                      }}
-                    >
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <img
-                          src={item.foodImage}
-                          alt={item.foodName}
-                          className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {item.foodName}
-                        </h3>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-sm text-gray-500 capitalize">
-                            {item.type}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {item.halfPrice && (
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600">
-                                ½: ₹{item.halfPrice}
-                              </span>
-                            )}
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600">
-                              Full: ₹{item.fullPrice}
+                          <div className="absolute top-4 right-4">
+                            <span
+                              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
+                                item.status === "available"
+                                  ? "bg-green-500/90 text-white"
+                                  : "bg-red-500/90 text-white"
+                              }`}
+                            >
+                              <span
+                                className={`w-2 h-2 rounded-full bg-white ${
+                                  item.status === "available"
+                                    ? "animate-pulse"
+                                    : ""
+                                }`}
+                              />
+                              {item.status}
+                            </span>
+                          </div>
+
+                          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-white text-[10px] font-bold uppercase tracking-widest border border-white/30">
+                              {item.type}
                             </span>
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full ${
-                              item.status === "available"
-                                ? "bg-green-500"
-                                : "bg-red-500"
-                            }`}
-                          />
-                          <span className="text-sm text-gray-600 capitalize">
-                            {item.status}
-                          </span>
+
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-500 transition-colors line-clamp-1 mb-4">
+                            {item.foodName}
+                          </h3>
+
+                          <div className="flex items-center gap-3">
+                            {item.halfPrice && (
+                              <div className="flex-1 bg-orange-50/50 rounded-2xl p-3 border border-orange-100/50 group-hover:bg-orange-500 transition-colors duration-300">
+                                <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-0.5 group-hover:text-orange-100">
+                                  Half
+                                </p>
+                                <p className="text-lg font-black text-orange-600 group-hover:text-white">
+                                  ₹{item.halfPrice}
+                                </p>
+                              </div>
+                            )}
+                            <div className="flex-1 bg-orange-500 rounded-2xl p-3 shadow-lg shadow-orange-200 group-hover:bg-orange-600 transition-colors duration-300">
+                              <p className="text-[10px] font-bold text-orange-100 uppercase tracking-wider mb-0.5">
+                                Full
+                              </p>
+                              <p className="text-lg font-black text-white">
+                                ₹{item.fullPrice}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+          </motion.div>
+        )}
       </section>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+      {/* Order Modal */}
+      <AnimatePresence>
+        {isOrderModalOpen && selectedFoodItem && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOrderModalOpen(false)}
+              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden relative"
+            >
+              <div className="bg-orange-500 p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 transform translate-x-4 -translate-y-4">
+                  <FaUtensils size={120} />
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-3xl font-black mb-2">Place Order</h3>
+                  <p className="text-orange-100 font-medium opacity-90">
+                    {selectedFoodItem.foodName}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsOrderModalOpen(false)}
+                  className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    Select Portion
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedFoodItem.halfPrice && (
+                      <button
+                        onClick={() => setSelectedQuantity("half")}
+                        className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                          selectedQuantity === "half"
+                            ? "border-orange-500 bg-orange-50"
+                            : "border-gray-100 hover:border-orange-200"
+                        }`}
+                      >
+                        <p
+                          className={`text-sm font-bold ${
+                            selectedQuantity === "half"
+                              ? "text-orange-600"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          Half Portion
+                        </p>
+                        <p
+                          className={`text-xl font-black ${
+                            selectedQuantity === "half"
+                              ? "text-orange-600"
+                              : "text-gray-800"
+                          }`}
+                        >
+                          ₹{selectedFoodItem.halfPrice}
+                        </p>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setSelectedQuantity("full")}
+                      className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                        selectedQuantity === "full"
+                          ? "border-orange-500 bg-orange-50"
+                          : "border-gray-100 hover:border-orange-200"
+                      } ${!selectedFoodItem.halfPrice ? "col-span-2" : ""}`}
+                    >
+                      <p
+                        className={`text-sm font-bold ${
+                          selectedQuantity === "full"
+                            ? "text-orange-600"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        Full Portion
+                      </p>
+                      <p
+                        className={`text-xl font-black ${
+                          selectedQuantity === "full"
+                            ? "text-orange-600"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        ₹{selectedFoodItem.fullPrice}
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    Assign Table
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                    {tables
+                      ?.filter((table) => table.status === "booked")
+                      .map((table) => (
+                        <button
+                          key={table._id}
+                          onClick={() =>
+                            setSelectedTable(table.number.toString())
+                          }
+                          className={`py-3 rounded-xl border-2 font-bold transition-all ${
+                            selectedTable === table.number.toString()
+                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-200"
+                              : "border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500"
+                          }`}
+                        >
+                          {table.number}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">
+                        Total Amount
+                      </p>
+                      <p className="text-3xl font-black text-gray-900">
+                        ₹{calculatePrice()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">
+                        Status
+                      </p>
+                      <div className="flex items-center gap-2 text-green-500 font-bold">
+                        <FaCheckCircle />
+                        <span>Ready</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={
+                      orderLoading || !selectedQuantity || !selectedTable
+                    }
+                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white py-5 rounded-[1.5rem] font-black text-lg shadow-xl shadow-orange-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                  >
+                    {orderLoading ? (
+                      <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <FaCheckCircle />
+                        <span>Confirm Order</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
         }
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f9fafb;
+          border-radius: 10px;
         }
-        @keyframes modalScale {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e5e7eb;
+          border-radius: 10px;
         }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .animate-fadeInUp {
-          animation: fadeInUp 0.4s ease-in-out;
-        }
-        .animate-modalScale {
-          animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #d1d5db;
         }
       `}</style>
-
-      {/* Order Modal */}
-      {isOrderModalOpen && selectedFoodItem && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-modalScale">
-            <h3 className="text-xl font-bold text-orange-600 mb-4">
-              Place Order for {selectedFoodItem.foodName}
-            </h3>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Quantity:
-              </label>
-              <select
-                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={selectedQuantity}
-                onChange={(e) =>
-                  setSelectedQuantity(e.target.value as "half" | "full")
-                }
-              >
-                <option value="">Select Quantity</option>
-                {selectedFoodItem.halfPrice && (
-                  <option value="half">
-                    Half (₹{selectedFoodItem.halfPrice})
-                  </option>
-                )}
-                <option value="full">
-                  Full (₹{selectedFoodItem.fullPrice})
-                </option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Table Number:
-              </label>
-              <select
-                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={selectedTable || ""}
-                onChange={(e) => setSelectedTable(e.target.value)}
-              >
-                <option value="">Select Table</option>
-                {tables
-                  ?.filter((table) => table.status === "booked")
-                  .map((table) => (
-                    <option key={table._id} value={table.number}>
-                      Table {table.number} ({table.status})
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="mt-8 flex justify-end gap-4">
-              <button
-                onClick={() => {
-                  setIsOrderModalOpen(false);
-                  setSelectedFoodItem(null);
-                  setSelectedQuantity("");
-                  setSelectedTable(null);
-                }}
-                className="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePlaceOrder}
-                disabled={orderLoading}
-                className="px-6 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center"
-              >
-                {orderLoading && (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                )}
-                Place Order
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
