@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFoodList, deleteFoodItem } from "@/Redux/slices/Foodlist";
 import { RootState, AppDispatch } from "@/Redux/store/store";
@@ -36,19 +36,180 @@ const categoryEmoji: Record<string, string> = {
   coldrinks: "🥤",
 };
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
-const containerVariants = {
+// --- Optimized Interfaces ---
+interface FoodItemType {
+  id: string;
+  foodName: string;
+  foodImage: string;
+  category: string;
+  status: string;
+  type: string;
+  halfPrice?: number;
+  fullPrice: number;
+}
+
+// --- Optimized Sub-components ---
+const FoodItem = React.memo(
+  ({
+    item,
+    isOpen,
+    onToggle,
+    onUpdate,
+    onDelete,
+  }: {
+    item: FoodItemType;
+    isOpen: boolean;
+    onToggle: (id: string) => void;
+    onUpdate: (id: string) => void;
+    onDelete: (id: string) => void;
+  }) => {
+    return (
+      <motion.div
+        layout="position"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        whileHover={{ y: -8 }}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 40,
+          mass: 1,
+        }}
+        className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 will-change-transform"
+      >
+        <div className="relative h-56 w-full overflow-hidden">
+          <img
+            src={item.foodImage}
+            alt={item.foodName}
+            loading="lazy"
+            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110 will-change-transform"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Options Menu Toggle */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(item.id);
+            }}
+            className="absolute top-4 right-4 bg-white/90 backdrop-blur-md hover:bg-white rounded-2xl p-3 shadow-lg transition-all duration-200 z-20"
+          >
+            <FaEllipsisV className="text-gray-700" />
+          </button>
+
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-16 right-4 bg-white rounded-2xl shadow-2xl z-30 w-40 overflow-hidden border border-gray-100"
+              >
+                <button
+                  onClick={() => {
+                    onUpdate(item.id);
+                    onToggle(""); // Close menu
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors"
+                >
+                  <FaEdit className="text-orange-500" />
+                  <span className="text-sm font-bold">Update</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete(item.id);
+                    onToggle(""); // Close menu
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors border-t border-gray-50"
+                >
+                  <FaTrash className="text-red-500" />
+                  <span className="text-sm font-bold">Delete</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Status Badge */}
+          <div className="absolute bottom-4 left-4">
+            <span
+              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
+                item.status === "available"
+                  ? "bg-green-500/90 text-white"
+                  : "bg-red-500/90 text-white"
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full bg-white ${
+                  item.status === "available" ? "animate-pulse" : ""
+                }`}
+              />
+              {item.status}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+              {item.foodName}
+            </h3>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
+              {item.type}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
+            {item.halfPrice && (
+              <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
+                <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
+                  Half
+                </p>
+                <p className="text-lg font-black text-orange-700">
+                  ₹{item.halfPrice}
+                </p>
+              </div>
+            )}
+            <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
+              <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
+                Full
+              </p>
+              <p className="text-lg font-black text-white">₹{item.fullPrice}</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+);
+
+FoodItem.displayName = "FoodItem";
+
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: {
+      staggerChildren: 0.05, // Faster stagger for mobile
+      delayChildren: 0.1,
+    },
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 40,
+    },
+  },
 };
 
 const MenuList: React.FC = () => {
@@ -91,41 +252,56 @@ const MenuList: React.FC = () => {
     }
   }, [showSearch]);
 
-  const filteredItems = localFoodItems.filter((item) =>
-    item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
+  // --- Optimized Filtering and Grouping ---
+  const filteredItems = React.useMemo(() => {
+    return localFoodItems.filter((item) =>
+      item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [localFoodItems, searchQuery]);
+
+  const grouped = React.useMemo(() => {
+    return filteredItems.reduce((acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push({
+        ...item,
+        halfPrice: item.halfPrice ? Number(item.halfPrice) : undefined,
+        fullPrice: Number(item.fullPrice),
+      });
+      return acc;
+    }, {} as Record<string, FoodItemType[]>);
+  }, [filteredItems]);
+
+  const handleAddFood = React.useCallback(() => {
+    router.push("/addFood");
+  }, [router]);
+
+  const handleUpdate = React.useCallback(
+    (id: string) => {
+      router.push(`/menuList/${id}`);
+    },
+    [router]
   );
 
-  const grouped = filteredItems.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, typeof filteredItems>);
+  const toggleMenu = React.useCallback((id: string) => {
+    setOpenMenuId((prev) => (prev === id ? null : id));
+  }, []);
 
-  const handleAddFood = () => {
-    router.push("/addFood");
-  };
-
-  const handleUpdate = (id: string) => {
-    router.push(`/menuList/${id}`);
-  };
-
-  const toggleMenu = (id: string) => {
-    setOpenMenuId(openMenuId === id ? null : id);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await dispatch(deleteFoodItem(id)).unwrap();
-      showToast("Food item deleted successfully", "success");
-      setLocalFoodItems((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        showToast(err.message, "error");
-      } else {
-        showToast("Failed to delete food item", "error");
+  const handleDelete = React.useCallback(
+    async (id: string) => {
+      try {
+        await dispatch(deleteFoodItem(id)).unwrap();
+        showToast("Food item deleted successfully", "success");
+        setLocalFoodItems((prev) => prev.filter((item) => item.id !== id));
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          showToast(err.message, "error");
+        } else {
+          showToast("Failed to delete food item", "error");
+        }
       }
-    }
-  };
+    },
+    [dispatch, showToast]
+  );
 
   if (loading)
     return (
@@ -262,125 +438,16 @@ const MenuList: React.FC = () => {
                   </div>
 
                   <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                       {grouped[category].map((item) => (
-                        <motion.div
+                        <FoodItem
                           key={item.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          whileHover={{ y: -8 }}
-                          className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300"
-                        >
-                          <div className="relative h-56 w-full overflow-hidden">
-                            <img
-                              src={item.foodImage}
-                              alt={item.foodName}
-                              className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                            {/* Options Menu Toggle */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleMenu(item.id);
-                              }}
-                              className="absolute top-4 right-4 bg-white/90 backdrop-blur-md hover:bg-white rounded-2xl p-3 shadow-lg transition-all duration-200 z-20"
-                            >
-                              <FaEllipsisV className="text-gray-700" />
-                            </button>
-
-                            <AnimatePresence>
-                              {openMenuId === item.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                  className="absolute top-16 right-4 bg-white rounded-2xl shadow-2xl z-30 w-40 overflow-hidden border border-gray-100"
-                                >
-                                  <button
-                                    onClick={() => {
-                                      handleUpdate(item.id);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors"
-                                  >
-                                    <FaEdit className="text-orange-500" />
-                                    <span className="text-sm font-bold">
-                                      Update
-                                    </span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDelete(item.id);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors border-t border-gray-50"
-                                  >
-                                    <FaTrash className="text-red-500" />
-                                    <span className="text-sm font-bold">
-                                      Delete
-                                    </span>
-                                  </button>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Status Badge */}
-                            <div className="absolute bottom-4 left-4">
-                              <span
-                                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
-                                  item.status === "available"
-                                    ? "bg-green-500/90 text-white"
-                                    : "bg-red-500/90 text-white"
-                                }`}
-                              >
-                                <span
-                                  className={`w-2 h-2 rounded-full bg-white ${
-                                    item.status === "available"
-                                      ? "animate-pulse"
-                                      : ""
-                                  }`}
-                                />
-                                {item.status}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                                {item.foodName}
-                              </h3>
-                              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
-                                {item.type}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
-                              {item.halfPrice && (
-                                <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
-                                  <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
-                                    Half
-                                  </p>
-                                  <p className="text-lg font-black text-orange-700">
-                                    ₹{item.halfPrice}
-                                  </p>
-                                </div>
-                              )}
-                              <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
-                                <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
-                                  Full
-                                </p>
-                                <p className="text-lg font-black text-white">
-                                  ₹{item.fullPrice}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
+                          item={item}
+                          isOpen={openMenuId === item.id}
+                          onToggle={toggleMenu}
+                          onUpdate={handleUpdate}
+                          onDelete={handleDelete}
+                        />
                       ))}
                     </AnimatePresence>
                   </div>
@@ -394,7 +461,7 @@ const MenuList: React.FC = () => {
           whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleAddFood}
-          className="fixed bottom-10 right-10 w-16 h-16 rounded-[2rem] bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-2xl shadow-orange-300 flex items-center justify-center z-40 group"
+          className="fixed bottom-10 right-10 w-16 h-16 rounded-[2rem] bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-2xl shadow-orange-300 flex items-center justify-center z-40 group will-change-transform"
         >
           <FaPlusCircle className="w-8 h-8 group-hover:drop-shadow-lg transition-all" />
         </motion.button>

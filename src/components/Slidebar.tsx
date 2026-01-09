@@ -10,7 +10,6 @@ import {
   FiCoffee,
   FiClipboard,
   FiMenu,
-  FiX,
   FiUser,
   FiLogIn,
   FiLogOut,
@@ -31,7 +30,7 @@ interface MenuItem {
 const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(true); // Default to true for mobile-first rendering
+  const [isMobile, setIsMobile] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
@@ -49,7 +48,7 @@ const Sidebar = () => {
     };
 
     handleResize();
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize, { passive: true });
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -74,50 +73,74 @@ const Sidebar = () => {
     }
   }, [pathname]);
 
-  const menuItems: MenuItem[] = [
-    { path: "/", name: "Home", icon: <FiHome /> },
-    { path: "/dashboardManager", name: "Dashboard", icon: <FiPieChart /> },
-    { path: "/menuList", name: "Menu List", icon: <FiCoffee /> },
-    { path: "/reportsManager", name: "Analytics", icon: <FiClipboard /> },
-    { path: "/tablesDashboard", name: "Tables", icon: <FiGrid /> },
-    { path: "/billDashboard", name: "Invoices", icon: <FiFileText /> },
-    { path: "/userCreation", name: "Staff Management", icon: <FiUsers /> },
-  ];
+  const menuItems: MenuItem[] = React.useMemo(
+    () => [
+      { path: "/", name: "Home", icon: <FiHome /> },
+      { path: "/dashboardManager", name: "Dashboard", icon: <FiPieChart /> },
+      { path: "/menuList", name: "Menu List", icon: <FiCoffee /> },
+      { path: "/reportsManager", name: "Analytics", icon: <FiClipboard /> },
+      { path: "/tablesDashboard", name: "Tables", icon: <FiGrid /> },
+      { path: "/billDashboard", name: "Invoices", icon: <FiFileText /> },
+      { path: "/userCreation", name: "Staff Management", icon: <FiUsers /> },
+    ],
+    []
+  );
 
-  const waiterMenuItems: MenuItem[] = [
-    { path: "/waiterTable", name: "Tables", icon: <FiGrid /> },
-    { path: "/waiterMenu", name: "Menu", icon: <FiCoffee /> },
-    {
-      path: "/waiterOrderHistory",
-      name: "Order History",
-      icon: <FiClipboard />,
-    },
-  ];
+  const waiterMenuItems: MenuItem[] = React.useMemo(
+    () => [
+      { path: "/waiterTable", name: "Tables", icon: <FiGrid /> },
+      { path: "/waiterMenu", name: "Menu", icon: <FiCoffee /> },
+      {
+        path: "/waiterOrderHistory",
+        name: "Order History",
+        icon: <FiClipboard />,
+      },
+    ],
+    []
+  );
 
-  const cookMenuItems: MenuItem[] = [
-    { path: "/cookDashboard", name: "Kitchen Hub", icon: <FiPieChart /> },
-    { path: "/cookMenu", name: "Menu Items", icon: <FiCoffee /> },
-  ];
+  const cookMenuItems: MenuItem[] = React.useMemo(
+    () => [
+      { path: "/cookDashboard", name: "Kitchen Hub", icon: <FiPieChart /> },
+      { path: "/cookMenu", name: "Menu Items", icon: <FiCoffee /> },
+    ],
+    []
+  );
 
   const sidebarVariants: Variants = {
-    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 40,
+        mass: 1,
+        restDelta: 0.5,
+      },
+    },
     closed: {
       x: "-100%",
-      transition: { type: "spring", stiffness: 300, damping: 30 },
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 40,
+        mass: 1,
+        restDelta: 0.5,
+      },
     },
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: -10 },
     visible: { opacity: 1, x: 0 },
   };
 
-  const handleLinkClick = () => {
+  const handleLinkClick = React.useCallback(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768)
       setIsOpen(false);
-  };
+  }, []);
 
-  const NavItem = ({ item }: { item: MenuItem }) => {
+  const NavItem = React.memo(({ item }: { item: MenuItem }) => {
     const isActive = pathname === item.path;
     return (
       <motion.li variants={itemVariants}>
@@ -150,17 +173,26 @@ const Sidebar = () => {
         </Link>
       </motion.li>
     );
-  };
+  });
+
+  NavItem.displayName = "NavItem";
 
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 left-6 z-[60] p-3 rounded-2xl bg-[#1d1917] border border-white/10 text-white shadow-xl md:hidden hover:bg-orange-500 transition-colors duration-300"
-      >
-        {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-      </button>
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: 20 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed top-6 right-6 z-[60] p-3 rounded-2xl bg-[#1d1917] border border-white/10 text-white shadow-xl md:hidden hover:bg-orange-500 transition-colors duration-300"
+          >
+            <FiMenu size={24} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Backdrop */}
       <AnimatePresence>
@@ -170,7 +202,7 @@ const Sidebar = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[40] md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden will-change-[opacity]"
           />
         )}
       </AnimatePresence>
@@ -180,7 +212,7 @@ const Sidebar = () => {
         initial="closed"
         animate={isMobile ? (isOpen ? "open" : "closed") : "open"}
         variants={sidebarVariants}
-        className={`fixed left-0 top-0 h-screen w-72 bg-[#0c0a09] text-white shadow-2xl flex flex-col z-50 overflow-hidden border-r border-white/5`}
+        className={`fixed left-0 top-0 h-screen w-72 bg-[#0c0a09] text-white shadow-2xl flex flex-col z-50 overflow-hidden border-r border-white/5 will-change-transform`}
       >
         {/* Logo Section */}
         <div className="p-8">
