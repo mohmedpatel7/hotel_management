@@ -25,7 +25,9 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.05, // Faster stagger
+      duration: 0.3, // Shorter overall duration
+      ease: "easeOut", // Use faster easing
     },
   },
 };
