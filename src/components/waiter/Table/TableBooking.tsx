@@ -218,7 +218,7 @@ export default function Tables() {
                   <div className="flex items-center justify-between mb-8">
                     <div
                       className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
-                        table.status === "available"
+                        status === "available"
                           ? "bg-green-50 text-green-500"
                           : "bg-red-50 text-red-500"
                       }`}

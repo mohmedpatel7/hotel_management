@@ -16,21 +16,22 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2,
+      staggerChildren: 0.1, // Faster stagger for mobile
       delayChildren: 0.1,
     },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       type: "spring",
-      damping: 25,
-      stiffness: 100,
+      damping: 30,
+      stiffness: 150,
+      mass: 0.8, // Lighter feel
     },
   },
 };
@@ -51,7 +52,7 @@ const LandingPage: React.FC = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="space-y-8 text-center lg:text-left"
+            className="space-y-8 text-center lg:text-left will-change-transform"
           >
             <motion.div
               variants={itemVariants}
@@ -113,15 +114,16 @@ const LandingPage: React.FC = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+            initial={{ opacity: 0, scale: 0.9, rotate: 2 }} // Reduced initial scale/rotate for mobile
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative hidden lg:block"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative hidden lg:block will-change-transform"
           >
             <div className="relative z-10 rounded-[4rem] overflow-hidden shadow-2xl shadow-orange-200 transform hover:scale-[1.02] transition-transform duration-500">
               <img
                 src="/food-hero.jpg"
                 alt="Delicious Mumtaz Chicken"
+                loading="lazy"
                 className="w-full h-[600px] object-cover"
                 onError={(e) => {
                   e.currentTarget.src =
@@ -131,9 +133,9 @@ const LandingPage: React.FC = () => {
             </div>
             {/* Floating Card */}
             <motion.div
-              animate={{ y: [0, -20, 0] }}
+              animate={{ y: [0, -15, 0] }} // Reduced amplitude for mobile
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-2xl z-20 flex items-center gap-4 border border-gray-100"
+              className="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-2xl z-20 flex items-center gap-4 border border-gray-100 will-change-transform"
             >
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500">
                 <FiCheckCircle size={24} />
@@ -156,9 +158,9 @@ const LandingPage: React.FC = () => {
         <motion.div
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }} // Added margin to trigger earlier
           variants={containerVariants}
-          className="text-center mb-20"
+          className="text-center mb-20 will-change-transform"
         >
           <motion.p
             variants={itemVariants}
@@ -199,9 +201,9 @@ const LandingPage: React.FC = () => {
               key={idx}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-50px" }}
               variants={itemVariants}
-              className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 hover:shadow-2xl hover:shadow-orange-100/30 transition-all duration-500 group"
+              className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 hover:shadow-2xl hover:shadow-orange-100/30 transition-all duration-500 group will-change-transform"
             >
               <div
                 className={`w-16 h-16 ${service.color} rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform duration-500`}
@@ -227,9 +229,9 @@ const LandingPage: React.FC = () => {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-50px" }}
             variants={containerVariants}
-            className="text-center mb-20"
+            className="text-center mb-20 will-change-transform"
           >
             <motion.p
               variants={itemVariants}
@@ -270,14 +272,15 @@ const LandingPage: React.FC = () => {
                 key={idx}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true }}
+                viewport={{ once: true, margin: "-50px" }}
                 variants={itemVariants}
-                className="bg-gray-50 p-10 rounded-[2.5rem] relative group hover:bg-white hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 border border-transparent hover:border-orange-100"
+                className="bg-gray-50 p-10 rounded-[2.5rem] relative group hover:bg-white hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 border border-transparent hover:border-orange-100 will-change-transform"
               >
                 <div className="flex items-center gap-4 mb-8">
                   <img
                     src={testimonial.img}
                     alt={testimonial.name}
+                    loading="lazy"
                     className="w-14 h-14 rounded-full border-2 border-white shadow-md"
                   />
                   <div>
@@ -310,10 +313,10 @@ const LandingPage: React.FC = () => {
       {/* CTA Section */}
       <section className="py-20 container mx-auto px-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="bg-orange-500 rounded-[4rem] p-12 md:p-20 text-center text-white relative overflow-hidden"
+          viewport={{ once: true, margin: "-50px" }}
+          className="bg-orange-500 rounded-[4rem] p-12 md:p-20 text-center text-white relative overflow-hidden will-change-transform"
         >
           <div className="absolute top-0 right-0 p-20 opacity-10 transform translate-x-10 -translate-y-10">
             <FiCoffee size={300} />

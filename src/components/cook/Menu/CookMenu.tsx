@@ -3,18 +3,16 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFoodList, updateFoodStatus } from "@/Redux/slices/Foodlist";
-import { fetchTables } from "@/Redux/slices/Table";
 import { RootState, AppDispatch } from "@/Redux/store/store";
 import {
   FaSearch,
-  FaRedoAlt,
   FaCheckCircle,
   FaTimesCircle,
   FaCloudUploadAlt,
 } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/Toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 const categoryOrder = [
   "soups",
@@ -40,17 +38,28 @@ const categoryEmoji: Record<string, string> = {
   coldrinks: "🥤",
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.05 }, // Faster stagger for mobile
   },
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
+const itemVariants: Variants = {
+  hidden: { y: 15, opacity: 0, scale: 0.95 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 200,
+      mass: 0.8,
+    },
+  },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
 };
 
 const MenuList: React.FC = () => {
@@ -242,12 +251,15 @@ const MenuList: React.FC = () => {
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="px-4 md:px-8 py-10 relative"
+        className="px-4 md:px-8 py-10 relative will-change-transform"
       >
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-            <motion.div variants={itemVariants}>
+            <motion.div
+              variants={itemVariants}
+              className="will-change-transform"
+            >
               <h1 className="text-4xl font-black text-gray-900 mb-2 mt-4 sm:mt-4">
                 Our <span className="text-orange-500">Menu</span>
               </h1>
@@ -314,14 +326,12 @@ const MenuList: React.FC = () => {
                   </div>
 
                   <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                       {grouped[category].map((item) => (
                         <motion.div
                           key={item.id}
                           layout
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
+                          variants={itemVariants}
                           whileHover={{ y: -8 }}
                           onClick={() =>
                             openStatusModal({
@@ -330,12 +340,13 @@ const MenuList: React.FC = () => {
                               status: item.status,
                             })
                           }
-                          className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 cursor-pointer"
+                          className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 cursor-pointer will-change-transform"
                         >
                           <div className="relative h-56 w-full overflow-hidden">
                             <img
                               src={item.foodImage}
                               alt={item.foodName}
+                              loading="lazy"
                               className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">

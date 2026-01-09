@@ -14,8 +14,8 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.08, // Slightly faster for mobile
+      delayChildren: 0.1,
     },
   },
 };
@@ -29,6 +29,7 @@ const itemVariants: Variants = {
       type: "spring",
       damping: 25,
       stiffness: 200,
+      mass: 0.8, // Lighter feel for mobile
     },
   },
 };
@@ -71,10 +72,13 @@ const SigninLandpage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 sm:p-8"
+      className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 sm:p-8 will-change-transform"
     >
       <div className="max-w-7xl w-full mx-auto">
-        <motion.div variants={itemVariants} className="text-center mb-16">
+        <motion.div
+          variants={itemVariants}
+          className="text-center mb-16 will-change-transform"
+        >
           <div className="bg-orange-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <FiLogIn className="text-orange-500 text-4xl" />
           </div>
@@ -93,7 +97,7 @@ const SigninLandpage = () => {
               key={role.title}
               variants={itemVariants}
               onClick={() => router.push(role.path)}
-              className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 cursor-pointer group hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 relative overflow-hidden"
+              className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 cursor-pointer group hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 relative overflow-hidden will-change-transform"
             >
               <div className="absolute top-0 right-0 p-10 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
                 {role.bgIcon}

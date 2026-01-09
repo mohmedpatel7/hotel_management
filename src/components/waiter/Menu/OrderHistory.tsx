@@ -27,13 +27,13 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.05, // Faster stagger for mobile
     },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 }, // Reduced y movement
   visible: {
     opacity: 1,
     y: 0,
@@ -41,6 +41,7 @@ const itemVariants: Variants = {
       type: "spring",
       damping: 25,
       stiffness: 200,
+      mass: 0.8, // Lighter feel for mobile
     },
   },
 };
@@ -243,12 +244,12 @@ export default function OrderHistory() {
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="min-h-screen px-4 sm:px-8 py-10 bg-[#f8fafc]"
+          className="min-h-screen px-4 sm:px-8 py-10 bg-[#f8fafc] will-change-transform"
         >
           <div className="max-w-7xl mx-auto">
             <motion.div
               variants={itemVariants}
-              className="mb-12 text-center md:text-left"
+              className="mb-12 text-center md:text-left will-change-transform"
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
@@ -387,7 +388,7 @@ export default function OrderHistory() {
                       key={order._id || index}
                       variants={itemVariants}
                       whileHover={{ y: -8 }}
-                      className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden group hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500"
+                      className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden group hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500 will-change-transform"
                     >
                       <div className="p-8">
                         <div className="flex items-center justify-between mb-6">
@@ -426,6 +427,7 @@ export default function OrderHistory() {
                             <img
                               src={imageUrl}
                               alt={order.food?.foodName}
+                              loading="lazy"
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
                           ) : (
