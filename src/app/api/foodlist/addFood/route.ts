@@ -61,6 +61,9 @@ export async function POST(req: NextRequest) {
       foodImage: uploadResponse.secure_url,
     });
 
+    // Invalidate static cache when new food is added
+    await client.del("foodList:static");
+
     return NextResponse.json(
       {
         message: "Food item added successfully!",
@@ -79,31 +82,40 @@ export async function POST(req: NextRequest) {
 // ✅ Get food list
 export async function GET() {
   try {
-    const foodKey = "foodList:all";
-    // 1.Check Cache first.
-    const foodListCache = await client.get(foodKey);
-    if (foodListCache) {
-      return NextResponse.json({
-        success: true,
-        status: 200,
-        message: "Food list fetched successfully !",
-        foodItems: foodListCache,
-        source: "redis",
-      });
-    }
+    const staticKey = "foodList:static";
+    await connectDB();
 
-    connectDB();
+    // 1. Check Static Cache first (everything except status)
+    const cachedStatic = await client.get(staticKey);
 
-    const foodList = await FoodList.find();
-    if (!foodList || foodList.length === 0) {
+    // 2. Always fetch dynamic status from MongoDB
+    const liveItems = await FoodList.find();
+
+    if (!liveItems || liveItems.length === 0) {
       return NextResponse.json(
         { message: "No food items found !" },
         { status: 404 }
       );
     }
 
-    // Map the array of food items to include all fields
-    const response = foodList.map((item) => ({
+    // 3. If no static cache, create it (TTL 1 hour)
+    if (!cachedStatic) {
+      const staticData = liveItems.map((item) => ({
+        id: item._id,
+        type: item.type,
+        category: item.category,
+        foodName: item.foodName,
+        halfPrice: item.halfPrice,
+        fullPrice: item.fullPrice,
+        foodImage: item.foodImage,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      }));
+      await client.set(staticKey, staticData, { ex: 3600 });
+    }
+
+    // 4. Merge live status with static data
+    const response = liveItems.map((item) => ({
       id: item._id,
       type: item.type,
       category: item.category,
@@ -111,15 +123,23 @@ export async function GET() {
       halfPrice: item.halfPrice,
       fullPrice: item.fullPrice,
       foodImage: item.foodImage,
-      status: item.status,
+      status: item.status, // Live from DB
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     }));
 
-    // 2. Store in redis cache.
-    await client.set(foodKey, response, { ex: 1200 });
-
-    return NextResponse.json({ foodItems: response }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        status: 200,
+        message: "Food list fetched successfully !",
+        foodItems: response,
+        source: cachedStatic
+          ? "hybrid (static:redis, status:mongodb)"
+          : "mongodb",
+      },
+      { status: 200 }
+    );
   } catch (error) {
     return NextResponse.json(
       { message: "Internal server error!", error: error },

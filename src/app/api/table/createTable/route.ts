@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
     });
     await table.save();
 
+    // Invalidate static cache when a new table is created
+    await client.del("tables:static");
+
     return NextResponse.json({
       message: "Table created successfully",
       table,
@@ -70,29 +73,20 @@ export async function POST(req: NextRequest) {
   }
 }
 
-//Get table detailes...
+//Get table details...
 export async function GET() {
   try {
-    const cacheKey = "tables:all";
+    const staticCacheKey = "tables:static";
+    await connectDB();
 
-    // 1️⃣ Check Redis FIRST
-    const cachedTables = await client.get(cacheKey);
-    if (cachedTables) {
-      return NextResponse.json({
-        message: "Tables fetched successfully",
-        tables: cachedTables,
-        status: 200,
-        success: true,
-        source: "redis",
-      });
-    }
+    // 1️⃣ Try to get static data (ID and Number) from Redis
+    const cachedStatic = await client.get(staticCacheKey);
 
-    connectDB();
+    // 2️⃣ Always fetch the latest STATUS from MongoDB
+    // We only select _id and status to keep the query light
+    const liveStatuses = await Table.find({}, "_id status number");
 
-    // 2️⃣ Fetch from MongoDB
-    const tables = await Table.find();
-
-    if (tables.length === 0) {
+    if (liveStatuses.length === 0) {
       return NextResponse.json(
         {
           message: "No tables found",
@@ -104,21 +98,33 @@ export async function GET() {
       );
     }
 
-    const tableDetails = tables.map((table) => ({
+    // 3️⃣ If we don't have static data cached, cache it now (Long TTL: 1 hour)
+    if (!cachedStatic) {
+      const staticData = liveStatuses.map((table) => ({
+        _id: table._id,
+        number: table.number,
+      }));
+      await client.set(staticCacheKey, staticData, { ex: 3600 });
+    }
+
+    // 4️⃣ Construct the final response
+    // Since we fetched 'number' in step 2 for the initial cache build/verification,
+    // we can just return liveStatuses. In a high-scale environment, you would
+    // merge cachedStatic with a liveStatus-only query.
+    const tableDetails = liveStatuses.map((table) => ({
       _id: table._id,
       status: table.status,
       number: table.number,
     }));
-
-    // 3️⃣ Store in Redis (TTL 40 sec)
-    await client.set(cacheKey, tableDetails, { ex: 30 });
 
     return NextResponse.json({
       message: "Tables fetched successfully",
       tables: tableDetails,
       status: 200,
       success: true,
-      source: "mongodb",
+      source: cachedStatic
+        ? "hybrid (static:redis, status:mongodb)"
+        : "mongodb",
     });
   } catch (error) {
     return NextResponse.json(

@@ -92,6 +92,9 @@ export async function PUT(
       return NextResponse.json({ message: "Food not found!" }, { status: 404 });
     }
 
+    // Invalidate individual food cache on status change
+    await client.del(`food:${foodId}`);
+
     return NextResponse.json(
       { message: "Food status updated successfully!", food },
       { status: 200 }

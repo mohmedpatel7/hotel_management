@@ -3,6 +3,7 @@ import Table from "@/lib/schema/Table";
 import jwt from "jsonwebtoken";
 import { connectDB } from "@/lib/db/dbConnection";
 import Bill from "@/lib/schema/Bill";
+import { client } from "@/lib/Redis/client";
 
 async function generateUniqueBillId() {
   let billId;
@@ -138,6 +139,10 @@ export async function DELETE(
         success: false,
       });
     }
+
+    // Invalidate static cache when a table is deleted
+    await client.del("tables:static");
+
     return NextResponse.json({
       message: "Table deleted successfully",
       status: 200,

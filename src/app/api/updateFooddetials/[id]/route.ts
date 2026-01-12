@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db/dbConnection";
 import FoodList from "@/lib/schema/FoodList";
 import cloudinary from "@/utils/cloudinary";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { client } from "@/lib/Redis/client";
 
 export async function PUT(
   req: NextRequest,
@@ -81,6 +82,9 @@ export async function PUT(
       return NextResponse.json({ message: "Food not found!" }, { status: 400 });
     }
 
+    // Invalidate static cache
+    await client.del("foodList:static");
+
     return NextResponse.json({
       message: "Food info updated successfully!",
       status: 200,
@@ -127,6 +131,9 @@ export async function DELETE(
     if (!deletedFood) {
       return NextResponse.json({ message: "Food not found!" }, { status: 400 });
     }
+
+    // Invalidate static cache
+    await client.del("foodList:static");
 
     return NextResponse.json({
       message: "Food item deleted successfully!",
