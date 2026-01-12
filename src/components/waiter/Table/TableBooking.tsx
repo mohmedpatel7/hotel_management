@@ -261,79 +261,82 @@ export default function Tables() {
             </motion.div>
           )}
 
-          {/* Update Table Status Modal */}
-          <AnimatePresence>
-            {isUpdateModalOpen && tableToUpdate && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={closeUpdateModal}
-                  className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
-                />
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                  className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative"
-                >
-                  <div className="bg-orange-500 p-8 text-white">
-                    <h3 className="text-3xl font-black">Update Status</h3>
-                    <p className="text-orange-100 font-medium opacity-90">
-                      Table {tableToUpdate.number}
-                    </p>
-                  </div>
-
-                  <div className="p-8">
-                    <div className="mb-8">
-                      <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 text-center">
-                        Select New Status
-                      </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {(["available", "booked"] as const).map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => setNewStatus(status)}
-                            className={`py-4 rounded-2xl font-bold transition-all duration-300 border-2 ${
-                              newStatus === status
-                                ? status === "available"
-                                  ? "bg-green-50 border-green-500 text-green-600 shadow-lg shadow-green-100"
-                                  : "bg-red-50 border-red-500 text-red-600 shadow-lg shadow-red-100"
-                                : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100"
-                            }`}
-                          >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                      <button
-                        onClick={closeUpdateModal}
-                        className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleUpdateTableStatus}
-                        disabled={loading}
-                        className="flex-[2] py-4 bg-orange-500 text-white rounded-2xl font-black shadow-xl shadow-orange-200 hover:bg-orange-600 disabled:bg-gray-300 transition-all flex items-center justify-center gap-3"
-                      >
-                        {loading ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          "Update Status"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
         </section>
+
+        {/* Update Table Status Modal */}
+        <AnimatePresence>
+          {isUpdateModalOpen && tableToUpdate && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
+                onClick={closeUpdateModal}
+                className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
+              />
+              <motion.div
+                initial={{ scale: 0.98, opacity: 0, y: 5 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.98, opacity: 0, y: 5 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative"
+              >
+                <div className="bg-orange-500 p-8 text-white">
+                  <h3 className="text-3xl font-black">Update Status</h3>
+                  <p className="text-orange-100 font-medium opacity-90">
+                    Table {tableToUpdate.number}
+                  </p>
+                </div>
+
+                <div className="p-8">
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 text-center">
+                      Select New Status
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {(["available", "booked"] as const).map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setNewStatus(status)}
+                          className={`py-4 rounded-2xl font-bold transition-all duration-300 border-2 ${
+                            newStatus === status
+                              ? status === "available"
+                                ? "bg-green-50 border-green-500 text-green-600 shadow-lg shadow-green-100"
+                                : "bg-red-50 border-red-500 text-red-600 shadow-lg shadow-red-100"
+                              : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100"
+                          }`}
+                        >
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={closeUpdateModal}
+                      className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateTableStatus}
+                      disabled={loading}
+                      className="flex-[2] py-4 bg-orange-500 text-white rounded-2xl font-black shadow-xl shadow-orange-200 hover:bg-orange-600 disabled:bg-gray-300 transition-all flex items-center justify-center gap-3"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        "Update Status"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     )
   );

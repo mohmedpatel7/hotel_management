@@ -480,74 +480,76 @@ export default function OrderHistory() {
                 })}
               </motion.div>
             )}
-
-            <AnimatePresence>
-              {deleteModalOpen && selectedOrder && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={closeDeleteModal}
-                    className="absolute inset-0 bg-gray-900/40 backdrop-blur-md"
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 p-10 opacity-5 transform translate-x-4 -translate-y-4">
-                      <FiTrash2 size={120} />
-                    </div>
-
-                    <div className="relative z-10 text-center">
-                      <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <FiTrash2 className="text-red-500 text-4xl" />
-                      </div>
-                      <h2 className="text-3xl font-black text-gray-900 mb-2">
-                        Confirm <span className="text-red-500">Delete</span>
-                      </h2>
-                      <p className="text-gray-500 font-medium mb-8">
-                        Are you sure you want to delete this order for{" "}
-                        <span className="text-gray-900 font-bold">
-                          {selectedOrder.food.foodName}
-                        </span>{" "}
-                        on table{" "}
-                        <span className="text-gray-900 font-bold">
-                          #{selectedOrder.tableNo}
-                        </span>
-                        ?
-                      </p>
-
-                      <div className="flex gap-4">
-                        <button
-                          onClick={closeDeleteModal}
-                          className="flex-1 px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleConfirmDelete}
-                          disabled={deletingId === selectedOrder._id}
-                          className="flex-[2] px-6 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {deletingId === selectedOrder._id && (
-                            <FiRefreshCw className="animate-spin" />
-                          )}
-                          {deletingId === selectedOrder._id
-                            ? "Deleting..."
-                            : "Delete Order"}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
           </div>
         </motion.section>
       )}
+
+      <AnimatePresence>
+        {deleteModalOpen && selectedOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
+              onClick={closeDeleteModal}
+              className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
+            />
+            <motion.div
+              initial={{ scale: 0.98, opacity: 0, y: 5 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: 5 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-10 opacity-5 transform translate-x-4 -translate-y-4">
+                <FiTrash2 size={120} />
+              </div>
+
+              <div className="relative z-10 text-center">
+                <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <FiTrash2 className="text-red-500 text-4xl" />
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 mb-2">
+                  Confirm <span className="text-red-500">Delete</span>
+                </h2>
+                <p className="text-gray-500 font-medium mb-8">
+                  Are you sure you want to delete this order for{" "}
+                  <span className="text-gray-900 font-bold">
+                    {selectedOrder.food.foodName}
+                  </span>{" "}
+                  on table{" "}
+                  <span className="text-gray-900 font-bold">
+                    #{selectedOrder.tableNo}
+                  </span>
+                  ?
+                </p>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={closeDeleteModal}
+                    className="flex-1 px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    disabled={deletingId === selectedOrder._id}
+                    className="flex-[2] px-6 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {deletingId === selectedOrder._id && (
+                      <FiRefreshCw className="animate-spin" />
+                    )}
+                    {deletingId === selectedOrder._id
+                      ? "Deleting..."
+                      : "Delete Order"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   );
 }

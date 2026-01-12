@@ -120,7 +120,7 @@ const MenuList: React.FC = () => {
           const decodedToken: { id: string } = jwtDecode(token);
           setcookToken(decodedToken.id);
         } catch (error) {
-          console.error("Error decoding token:", error);
+          showToast(". Please sign in.", "error");
         }
       }
     }
@@ -245,293 +245,295 @@ const MenuList: React.FC = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      <motion.section
-        ref={menuRef}
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="px-4 md:px-8 py-10 relative will-change-transform"
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-            <motion.div
-              variants={itemVariants}
-              className="will-change-transform"
-            >
-              <h1 className="text-4xl font-black text-gray-900 mb-2 mt-4 sm:mt-4">
-                Our <span className="text-orange-500">Menu</span>
-              </h1>
-              <p className="text-gray-500 font-medium">
-                Manage food availability and status
-              </p>
-            </motion.div>
+    cookToken && (
+      <div className="min-h-screen bg-[#f8fafc]">
+        <motion.section
+          ref={menuRef}
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="px-4 md:px-8 py-10 relative will-change-transform"
+        >
+          <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+              <motion.div
+                variants={itemVariants}
+                className="will-change-transform"
+              >
+                <h1 className="text-4xl font-black text-gray-900 mb-2 mt-4 sm:mt-4">
+                  Our <span className="text-orange-500">Menu</span>
+                </h1>
+                <p className="text-gray-500 font-medium">
+                  Manage food availability and status
+                </p>
+              </motion.div>
 
-            {/* Enhanced Search Box */}
-            <motion.div variants={itemVariants} className="relative group">
-              <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm group-hover:shadow-md group-focus-within:border-orange-300 transition-all duration-300 w-full md:w-80">
-                <FaSearch className="text-gray-400 group-focus-within:text-orange-500 transition-colors" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search dishes..."
-                  className="outline-none text-sm w-full text-gray-700 bg-transparent"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="text-gray-400 hover:text-gray-600"
+              {/* Enhanced Search Box */}
+              <motion.div variants={itemVariants} className="relative group">
+                <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm group-hover:shadow-md group-focus-within:border-orange-300 transition-all duration-300 w-full md:w-80">
+                  <FaSearch className="text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search dishes..."
+                    className="outline-none text-sm w-full text-gray-700 bg-transparent"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+
+            {Object.entries(grouped).length === 0 ? (
+              <motion.div
+                variants={itemVariants}
+                className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
+              >
+                <div className="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaSearch className="text-orange-500 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  No items found
+                </h3>
+                <p className="text-gray-500">
+                  Try adjusting your search or add a new item
+                </p>
+              </motion.div>
+            ) : (
+              categoryOrder
+                .filter((cat) => grouped[cat])
+                .map((category) => (
+                  <motion.div
+                    key={category}
+                    variants={itemVariants}
+                    className="mb-16"
                   >
-                    ×
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          </div>
-
-          {Object.entries(grouped).length === 0 ? (
-            <motion.div
-              variants={itemVariants}
-              className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
-            >
-              <div className="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaSearch className="text-orange-500 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">
-                No items found
-              </h3>
-              <p className="text-gray-500">
-                Try adjusting your search or add a new item
-              </p>
-            </motion.div>
-          ) : (
-            categoryOrder
-              .filter((cat) => grouped[cat])
-              .map((category) => (
-                <motion.div
-                  key={category}
-                  variants={itemVariants}
-                  className="mb-16"
-                >
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
-                      {categoryEmoji[category] || "🍽️"}
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        {categoryEmoji[category] || "🍽️"}
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-900 capitalize tracking-tight">
+                        {category}
+                      </h2>
+                      <div className="flex-1 h-px bg-gray-100"></div>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 capitalize tracking-tight">
-                      {category}
-                    </h2>
-                    <div className="flex-1 h-px bg-gray-100"></div>
-                  </div>
 
-                  <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                    <AnimatePresence mode="popLayout">
-                      {grouped[category].map((item) => (
-                        <motion.div
-                          key={item.id}
-                          layout
-                          variants={itemVariants}
-                          whileHover={{ y: -8 }}
-                          onClick={() =>
-                            openStatusModal({
-                              id: item.id,
-                              foodName: item.foodName,
-                              status: item.status,
-                            })
-                          }
-                          className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 cursor-pointer will-change-transform"
-                        >
-                          <div className="relative h-56 w-full overflow-hidden">
-                            <img
-                              src={item.foodImage}
-                              alt={item.foodName}
-                              loading="lazy"
-                              className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                              <span className="text-white font-bold flex items-center gap-2">
-                                <FaCloudUploadAlt /> Update Status
-                              </span>
-                            </div>
-                            <div className="absolute bottom-4 left-4">
-                              <span
-                                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
-                                  item.status === "available"
-                                    ? "bg-green-500/90 text-white"
-                                    : "bg-red-500/90 text-white"
-                                }`}
-                              >
+                    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                      <AnimatePresence mode="popLayout">
+                        {grouped[category].map((item) => (
+                          <motion.div
+                            key={item.id}
+                            layout
+                            variants={itemVariants}
+                            whileHover={{ y: -8 }}
+                            onClick={() =>
+                              openStatusModal({
+                                id: item.id,
+                                foodName: item.foodName,
+                                status: item.status,
+                              })
+                            }
+                            className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 cursor-pointer will-change-transform"
+                          >
+                            <div className="relative h-56 w-full overflow-hidden">
+                              <img
+                                src={item.foodImage}
+                                alt={item.foodName}
+                                loading="lazy"
+                                className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                                <span className="text-white font-bold flex items-center gap-2">
+                                  <FaCloudUploadAlt /> Update Status
+                                </span>
+                              </div>
+                              <div className="absolute bottom-4 left-4">
                                 <span
-                                  className={`w-2 h-2 rounded-full bg-white ${
+                                  className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
                                     item.status === "available"
-                                      ? "animate-pulse"
-                                      : ""
+                                      ? "bg-green-500/90 text-white"
+                                      : "bg-red-500/90 text-white"
                                   }`}
-                                />
-                                {item.status}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                                {item.foodName}
-                              </h3>
-                              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
-                                {item.type}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
-                              {item.halfPrice && (
-                                <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
-                                  <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
-                                    Half
-                                  </p>
-                                  <p className="text-lg font-black text-orange-700">
-                                    ₹{item.halfPrice}
-                                  </p>
-                                </div>
-                              )}
-                              <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
-                                <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
-                                  Full
-                                </p>
-                                <p className="text-lg font-black text-white">
-                                  ₹{item.fullPrice}
-                                </p>
+                                >
+                                  <span
+                                    className={`w-2 h-2 rounded-full bg-white ${
+                                      item.status === "available"
+                                        ? "animate-pulse"
+                                        : ""
+                                    }`}
+                                  />
+                                  {item.status}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              ))
-          )}
-        </div>
-      </motion.section>
 
-      {/* Modern Status Modal */}
-      <AnimatePresence>
-        {isStatusModalOpen && statusFoodItem && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeStatusModal}
-              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden"
-            >
-              <div className="h-2 bg-orange-500" />
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900">
-                      Update Status
-                    </h2>
-                    <p className="text-gray-500 font-medium mt-1">
-                      {statusFoodItem.foodName}
-                    </p>
-                  </div>
-                  <button
-                    onClick={closeStatusModal}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <FaTimesCircle className="text-gray-400 w-6 h-6" />
-                  </button>
-                </div>
+                            <div className="p-6">
+                              <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                                  {item.foodName}
+                                </h3>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
+                                  {item.type}
+                                </span>
+                              </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  {(["available", "unavailable"] as const).map((status) => (
+                              <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
+                                {item.halfPrice && (
+                                  <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
+                                    <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
+                                      Half
+                                    </p>
+                                    <p className="text-lg font-black text-orange-700">
+                                      ₹{item.halfPrice}
+                                    </p>
+                                  </div>
+                                )}
+                                <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
+                                  <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
+                                    Full
+                                  </p>
+                                  <p className="text-lg font-black text-white">
+                                    ₹{item.fullPrice}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                ))
+            )}
+          </div>
+        </motion.section>
+
+        {/* Modern Status Modal */}
+        <AnimatePresence>
+          {isStatusModalOpen && statusFoodItem && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closeStatusModal}
+                className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden"
+              >
+                <div className="h-2 bg-orange-500" />
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h2 className="text-2xl font-black text-gray-900">
+                        Update Status
+                      </h2>
+                      <p className="text-gray-500 font-medium mt-1">
+                        {statusFoodItem.foodName}
+                      </p>
+                    </div>
                     <button
-                      key={status}
-                      onClick={() => setNewStatus(status)}
-                      className={`relative group flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all duration-300 ${
-                        newStatus === status
-                          ? status === "available"
-                            ? "bg-green-50 border-green-500"
-                            : "bg-red-50 border-red-500"
-                          : "bg-white border-gray-100 hover:border-gray-200"
-                      }`}
+                      onClick={closeStatusModal}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${
+                      <FaTimesCircle className="text-gray-400 w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    {(["available", "unavailable"] as const).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setNewStatus(status)}
+                        className={`relative group flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all duration-300 ${
                           newStatus === status
                             ? status === "available"
-                              ? "bg-green-500 text-white"
-                              : "bg-red-500 text-white"
-                            : "bg-gray-100 text-gray-400"
+                              ? "bg-green-50 border-green-500"
+                              : "bg-red-50 border-red-500"
+                            : "bg-white border-gray-100 hover:border-gray-200"
                         }`}
                       >
-                        {status === "available" ? (
-                          <FaCheckCircle />
-                        ) : (
-                          <FaTimesCircle />
-                        )}
-                      </div>
-                      <span
-                        className={`font-bold capitalize ${
-                          newStatus === status
-                            ? status === "available"
-                              ? "text-green-700"
-                              : "text-red-700"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {status}
-                      </span>
-                      {newStatus === status && (
-                        <motion.div
-                          layoutId="activeStatus"
-                          className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
-                            status === "available"
-                              ? "bg-green-500"
-                              : "bg-red-500"
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${
+                            newStatus === status
+                              ? status === "available"
+                                ? "bg-green-500 text-white"
+                                : "bg-red-500 text-white"
+                              : "bg-gray-100 text-gray-400"
                           }`}
                         >
-                          <FaCheckCircle className="w-3 h-3" />
-                        </motion.div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                          {status === "available" ? (
+                            <FaCheckCircle />
+                          ) : (
+                            <FaTimesCircle />
+                          )}
+                        </div>
+                        <span
+                          className={`font-bold capitalize ${
+                            newStatus === status
+                              ? status === "available"
+                                ? "text-green-700"
+                                : "text-red-700"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {status}
+                        </span>
+                        {newStatus === status && (
+                          <motion.div
+                            layoutId="activeStatus"
+                            className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
+                              status === "available"
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          >
+                            <FaCheckCircle className="w-3 h-3" />
+                          </motion.div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
 
-                <div className="flex gap-4 mt-8">
-                  <button
-                    onClick={closeStatusModal}
-                    className="flex-1 py-4 px-6 rounded-2xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all duration-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleUpdateStatus}
-                    disabled={statusUpdating}
-                    className="flex-[2] py-4 px-6 rounded-2xl font-bold text-white bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 shadow-lg shadow-orange-200 transition-all duration-300 flex items-center justify-center gap-3"
-                  >
-                    {statusUpdating ? (
-                      <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <FaCloudUploadAlt className="text-xl" />
-                    )}
-                    {statusUpdating ? "Updating..." : "Save Changes"}
-                  </button>
+                  <div className="flex gap-4 mt-8">
+                    <button
+                      onClick={closeStatusModal}
+                      className="flex-1 py-4 px-6 rounded-2xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateStatus}
+                      disabled={statusUpdating}
+                      className="flex-[2] py-4 px-6 rounded-2xl font-bold text-white bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 shadow-lg shadow-orange-200 transition-all duration-300 flex items-center justify-center gap-3"
+                    >
+                      {statusUpdating ? (
+                        <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <FaCloudUploadAlt className="text-xl" />
+                      )}
+                      {statusUpdating ? "Updating..." : "Save Changes"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
   );
 };
 

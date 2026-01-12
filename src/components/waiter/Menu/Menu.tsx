@@ -15,6 +15,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/Toast";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const categoryOrder = [
   "soups",
@@ -52,17 +53,19 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { y: 15, opacity: 0 }, // Reduced y for smoothness
+  hidden: { y: 15, opacity: 0, scale: 0.95 },
   visible: {
     y: 0,
     opacity: 1,
+    scale: 1,
     transition: {
       type: "spring",
       damping: 25,
       stiffness: 200,
-      mass: 0.8, // Lighter feel
+      mass: 0.8,
     },
   },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
 };
 
 const MenuList: React.FC = () => {
@@ -92,8 +95,12 @@ const MenuList: React.FC = () => {
   >("");
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [weaterId, setWeaterId] = useState<string | null>(null);
+  const [authStatus, setAuthStatus] = useState<"checking" | "ok" | "redirect">(
+    "checking"
+  );
 
   const { showToast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     dispatch(getFoodListForWaiter());
@@ -115,18 +122,31 @@ const MenuList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("weater_token");
-      if (token) {
-        try {
-          const decodedToken: { id: string } = jwtDecode(token);
-          setWeaterId(decodedToken.id);
-        } catch (error) {
-          console.error("Error decoding token:", error);
-        }
-      }
+    const token = localStorage.getItem("weater_token");
+
+    if (!token) {
+      showToast("Please Signin!", "error");
+      router.replace("/");
+      setAuthStatus("redirect");
+      return;
     }
-  }, []);
+
+    try {
+      const decodedToken: { id: string } = jwtDecode(token);
+      if (!decodedToken.id) {
+        showToast("Invalid token! Please sign in again.", "error");
+        router.replace("/");
+        setAuthStatus("redirect");
+        return;
+      }
+      setWeaterId(decodedToken.id);
+      setAuthStatus("ok");
+    } catch (error) {
+      showToast("Invalid token! Please sign in again.", "error");
+      router.replace("/");
+      setAuthStatus("redirect");
+    }
+  }, [router, showToast]);
 
   const filteredItems = localFoodItems.filter((item) =>
     item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -184,7 +204,7 @@ const MenuList: React.FC = () => {
     }
   };
 
-  if (loading)
+  if (authStatus === "checking" || loading)
     return (
       <section className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -197,6 +217,8 @@ const MenuList: React.FC = () => {
         </div>
       </section>
     );
+
+  if (authStatus === "redirect") return null;
 
   if (error)
     return (
@@ -305,99 +327,101 @@ const MenuList: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {grouped[category].map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemVariants}
-                        layout
-                        whileHover={{ y: -8 }}
-                        onClick={() => {
-                          if (item.status === "available") {
-                            setSelectedFoodItem({
-                              _id: item.id,
-                              foodName: item.foodName,
-                              halfPrice: item.halfPrice
-                                ? Number(item.halfPrice)
-                                : undefined,
-                              fullPrice: Number(item.fullPrice),
-                            });
-                            setIsOrderModalOpen(true);
-                          } else {
-                            showToast(
-                              "This item is currently unavailable",
-                              "error"
-                            );
-                          }
-                        }}
-                        className={`group bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 cursor-pointer relative will-change-transform ${
-                          item.status !== "available"
-                            ? "opacity-75 grayscale-[0.5]"
-                            : ""
-                        }`}
-                      >
-                        <div className="relative h-56 overflow-hidden">
-                          <img
-                            src={item.foodImage}
-                            alt={item.foodName}
-                            loading="lazy"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+                    <AnimatePresence mode="popLayout">
+                      {grouped[category].map((item) => (
+                        <motion.div
+                          key={item.id}
+                          variants={itemVariants}
+                          layout
+                          whileHover={{ y: -8 }}
+                          onClick={() => {
+                            if (item.status === "available") {
+                              setSelectedFoodItem({
+                                _id: item.id,
+                                foodName: item.foodName,
+                                halfPrice: item.halfPrice
+                                  ? Number(item.halfPrice)
+                                  : undefined,
+                                fullPrice: Number(item.fullPrice),
+                              });
+                              setIsOrderModalOpen(true);
+                            } else {
+                              showToast(
+                                "This item is currently unavailable",
+                                "error"
+                              );
+                            }
+                          }}
+                          className={`group bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500 cursor-pointer relative will-change-transform ${
+                            item.status !== "available"
+                              ? "opacity-75 grayscale-[0.5]"
+                              : ""
+                          }`}
+                        >
+                          <div className="relative h-56 overflow-hidden">
+                            <img
+                              src={item.foodImage}
+                              alt={item.foodName}
+                              loading="lazy"
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
-                          <div className="absolute top-4 right-4">
-                            <span
-                              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
-                                item.status === "available"
-                                  ? "bg-green-500/90 text-white"
-                                  : "bg-red-500/90 text-white"
-                              }`}
-                            >
+                            <div className="absolute top-4 right-4">
                               <span
-                                className={`w-2 h-2 rounded-full bg-white ${
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
                                   item.status === "available"
-                                    ? "animate-pulse"
-                                    : ""
+                                    ? "bg-green-500/90 text-white"
+                                    : "bg-red-500/90 text-white"
                                 }`}
-                              />
-                              {item.status}
-                            </span>
-                          </div>
+                              >
+                                <span
+                                  className={`w-2 h-2 rounded-full bg-white ${
+                                    item.status === "available"
+                                      ? "animate-pulse"
+                                      : ""
+                                  }`}
+                                />
+                                {item.status}
+                              </span>
+                            </div>
 
-                          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-white text-[10px] font-bold uppercase tracking-widest border border-white/30">
-                              {item.type}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-500 transition-colors line-clamp-1 mb-4">
-                            {item.foodName}
-                          </h3>
-
-                          <div className="flex items-center gap-3">
-                            {item.halfPrice && (
-                              <div className="flex-1 bg-orange-50/50 rounded-2xl p-3 border border-orange-100/50 group-hover:bg-orange-500 transition-colors duration-300">
-                                <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-0.5 group-hover:text-orange-100">
-                                  Half
-                                </p>
-                                <p className="text-lg font-black text-orange-600 group-hover:text-white">
-                                  ₹{item.halfPrice}
-                                </p>
-                              </div>
-                            )}
-                            <div className="flex-1 bg-orange-500 rounded-2xl p-3 shadow-lg shadow-orange-200 group-hover:bg-orange-600 transition-colors duration-300">
-                              <p className="text-[10px] font-bold text-orange-100 uppercase tracking-wider mb-0.5">
-                                Full
-                              </p>
-                              <p className="text-lg font-black text-white">
-                                ₹{item.fullPrice}
-                              </p>
+                            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                              <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-white text-[10px] font-bold uppercase tracking-widest border border-white/30">
+                                {item.type}
+                              </span>
                             </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+
+                          <div className="p-6">
+                            <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-500 transition-colors line-clamp-1 mb-4">
+                              {item.foodName}
+                            </h3>
+
+                            <div className="flex items-center gap-3">
+                              {item.halfPrice && (
+                                <div className="flex-1 bg-orange-50/50 rounded-2xl p-3 border border-orange-100/50 group-hover:bg-orange-500 transition-colors duration-300">
+                                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-0.5 group-hover:text-orange-100">
+                                    Half
+                                  </p>
+                                  <p className="text-lg font-black text-orange-600 group-hover:text-white">
+                                    ₹{item.halfPrice}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="flex-1 bg-orange-500 rounded-2xl p-3 shadow-lg shadow-orange-200 group-hover:bg-orange-600 transition-colors duration-300">
+                                <p className="text-[10px] font-bold text-orange-100 uppercase tracking-wider mb-0.5">
+                                  Full
+                                </p>
+                                <p className="text-lg font-black text-white">
+                                  ₹{item.fullPrice}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               ))}
@@ -413,14 +437,17 @@ const MenuList: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
               onClick={() => setIsOrderModalOpen(false)}
-              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.98, opacity: 0, y: 5 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              exit={{ scale: 0.98, opacity: 0, y: 5 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden relative"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-orange-500 p-8 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 transform translate-x-4 -translate-y-4">
@@ -433,7 +460,10 @@ const MenuList: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setIsOrderModalOpen(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOrderModalOpen(false);
+                  }}
                   className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 >
                   <FaTimes />
@@ -518,54 +548,52 @@ const MenuList: React.FC = () => {
                           onClick={() =>
                             setSelectedTable(table.number.toString())
                           }
-                          className={`py-3 rounded-xl border-2 font-bold transition-all ${
+                          className={`p-3 rounded-xl border-2 transition-all text-center ${
                             selectedTable === table.number.toString()
-                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-200"
-                              : "border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500"
+                              ? "border-orange-500 bg-orange-50 text-orange-600 shadow-sm"
+                              : "border-gray-100 text-gray-400 hover:border-orange-200"
                           }`}
                         >
-                          {table.number}
+                          <p className="text-xs font-bold uppercase tracking-tighter mb-0.5">
+                            Table
+                          </p>
+                          <p className="text-lg font-black">{table.number}</p>
                         </button>
                       ))}
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">
-                        Total Amount
-                      </p>
-                      <p className="text-3xl font-black text-gray-900">
-                        ₹{calculatePrice()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">
-                        Status
-                      </p>
-                      <div className="flex items-center gap-2 text-green-500 font-bold">
-                        <FaCheckCircle />
-                        <span>Ready</span>
-                      </div>
-                    </div>
-                  </div>
-
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsOrderModalOpen(false);
+                    }}
+                    className="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-95"
+                  >
+                    Cancel
+                  </button>
                   <button
                     onClick={handlePlaceOrder}
                     disabled={
                       orderLoading || !selectedQuantity || !selectedTable
                     }
-                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white py-5 rounded-[1.5rem] font-black text-lg shadow-xl shadow-orange-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                    className="flex-[2] bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                   >
                     {orderLoading ? (
-                      <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1,
+                          ease: "linear",
+                        }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
                     ) : (
-                      <>
-                        <FaCheckCircle />
-                        <span>Confirm Order</span>
-                      </>
+                      <FaCheckCircle />
                     )}
+                    {orderLoading ? "Placing..." : "Confirm Order"}
                   </button>
                 </div>
               </div>
