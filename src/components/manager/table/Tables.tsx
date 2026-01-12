@@ -295,15 +295,15 @@ export default function Tables() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.1 }}
                   onClick={handleCloseModal}
-                  className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+                  className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
                 />
                 <motion.div
-                  initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                  initial={{ scale: 0.98, opacity: 0, y: 5 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  exit={{ scale: 0.98, opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                   className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative"
                 >
                   <div className="bg-orange-500 p-8 text-white">
@@ -360,15 +360,15 @@ export default function Tables() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.1 }}
                   onClick={closeDeleteModal}
-                  className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+                  className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
                 />
                 <motion.div
-                  initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                  initial={{ scale: 0.98, opacity: 0, y: 5 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  exit={{ scale: 0.98, opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                   className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative"
                 >
                   <div className="bg-red-500 p-8 text-white">

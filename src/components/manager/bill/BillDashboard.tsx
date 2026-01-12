@@ -591,15 +591,15 @@ export default function BillDashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.1 }}
               onClick={closeModal}
-              className="absolute inset-0 bg-gray-900/60 backdrop-blur-md"
+              className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.98, y: 5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              exit={{ opacity: 0, scale: 0.98, y: 5 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className="relative bg-white rounded-[1.5rem] md:rounded-[3rem] shadow-2xl p-5 md:p-10 w-full max-w-lg overflow-hidden"
             >
               {/* Modal Header */}
