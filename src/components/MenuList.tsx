@@ -1,0 +1,335 @@
+"use client";
+import React, { useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getFoodList } from "@/Redux/slices/Foodlist";
+import { RootState, AppDispatch } from "@/Redux/store/store";
+import { FaSearch } from "react-icons/fa";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+
+const categoryOrder = [
+  "soups",
+  "starter",
+  "curry",
+  "biryani",
+  "rice",
+  "roti",
+  "dessert",
+  "beverage",
+  "coldrinks",
+];
+
+const categoryEmoji: Record<string, string> = {
+  soups: "🥣",
+  starter: "🍢",
+  curry: "🍛",
+  biryani: "🍲",
+  rice: "🍚",
+  roti: "🫓",
+  dessert: "🍰",
+  beverage: "🥤",
+  coldrinks: "🥤",
+};
+
+// --- Optimized Interfaces ---
+interface FoodItemType {
+  id: string;
+  foodName: string;
+  foodImage: string;
+  category: string;
+  status: string;
+  type: string;
+  halfPrice?: number;
+  fullPrice: number;
+}
+
+// --- Optimized Sub-components ---
+const FoodItem = React.memo(({ item }: { item: FoodItemType }) => {
+  return (
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ y: -8 }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 40,
+        mass: 1,
+      }}
+      className="group bg-white rounded-[2rem] shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden relative transition-all duration-300 will-change-transform"
+    >
+      <div className="relative h-56 w-full overflow-hidden">
+        <img
+          src={item.foodImage}
+          alt={item.foodName}
+          loading="lazy"
+          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110 will-change-transform"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Status Badge */}
+        <div className="absolute bottom-4 left-4">
+          <span
+            className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg flex items-center gap-2 ${
+              item.status === "available"
+                ? "bg-green-500/90 text-white"
+                : "bg-red-500/90 text-white"
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full bg-white ${
+                item.status === "available" ? "animate-pulse" : ""
+              }`}
+            />
+            {item.status === "available" ? "Available" : "Unavailable"}
+          </span>
+        </div>
+      </div>
+
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+            {item.foodName}
+          </h3>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-lg">
+            {item.type}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
+          {item.halfPrice && (
+            <div className="flex-1 bg-orange-50 p-3 rounded-2xl text-center">
+              <p className="text-[10px] font-bold text-orange-400 uppercase mb-1">
+                Half
+              </p>
+              <p className="text-lg font-black text-orange-700">
+                ₹{item.halfPrice}
+              </p>
+            </div>
+          )}
+          <div className="flex-1 bg-orange-500 p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
+            <p className="text-[10px] font-bold text-orange-100 uppercase mb-1">
+              Full
+            </p>
+            <p className="text-lg font-black text-white">₹{item.fullPrice}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+FoodItem.displayName = "FoodItem";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 40,
+    },
+  },
+};
+
+const MenuList: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { foodItems, loading, error } = useSelector(
+    (state: RootState) => state.foodlist,
+  );
+
+  const [localFoodItems, setLocalFoodItems] = useState(foodItems);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    dispatch(getFoodList());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setLocalFoodItems(foodItems);
+  }, [foodItems]);
+
+  // --- Optimized Filtering and Grouping ---
+  const filteredItems = React.useMemo(() => {
+    return localFoodItems.filter((item) =>
+      item.foodName.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [localFoodItems, searchQuery]);
+
+  const grouped = React.useMemo(() => {
+    return filteredItems.reduce(
+      (acc, item) => {
+        if (!acc[item.category]) acc[item.category] = [];
+        acc[item.category].push({
+          ...item,
+          halfPrice: item.halfPrice ? Number(item.halfPrice) : undefined,
+          fullPrice: Number(item.fullPrice),
+        });
+        return acc;
+      },
+      {} as Record<string, FoodItemType[]>,
+    );
+  }, [filteredItems]);
+
+  if (loading)
+    return (
+      <section className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 font-medium">Loading Menu...</p>
+        </div>
+      </section>
+    );
+
+  if (error)
+    return (
+      <section className="bg-white min-h-screen px-6 py-10 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-red-50 border border-red-100 rounded-2xl shadow-xl p-8 max-w-md w-full text-center"
+        >
+          <div className="text-red-500 mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-red-700 mb-2">
+            Something went wrong
+          </h3>
+          <p className="text-red-600 mb-6">
+            {typeof error === "string"
+              ? error
+              : (error as { message?: string })?.message || "Unknown error"}
+          </p>
+          <button
+            onClick={() => dispatch(getFoodList())}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+          >
+            Try Again
+          </button>
+        </motion.div>
+      </section>
+    );
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc]">
+      <motion.section
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="px-4 md:px-8 py-10 relative"
+      >
+        <div className="max-w-7xl mx-auto">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <motion.div variants={itemVariants}>
+              <h1 className="text-4xl font-black text-gray-900 mb-2 mt-4 sm:mt-4">
+                Our <span className="text-orange-500">Menu</span>
+              </h1>
+              <p className="text-gray-500 font-medium">
+                Explore our delicious offerings
+              </p>
+            </motion.div>
+
+            {/* Search Box */}
+            <motion.div variants={itemVariants} className="relative group">
+              <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm group-hover:shadow-md group-focus-within:border-orange-300 transition-all duration-300 w-full md:w-80">
+                <FaSearch className="text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search dishes..."
+                  className="outline-none text-sm w-full text-gray-700 bg-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          {Object.entries(grouped).length === 0 ? (
+            <motion.div
+              variants={itemVariants}
+              className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100"
+            >
+              <div className="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaSearch className="text-orange-500 text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">
+                No items found
+              </h3>
+              <p className="text-gray-500">Try adjusting your search query</p>
+            </motion.div>
+          ) : (
+            categoryOrder
+              .filter((cat) => grouped[cat])
+              .map((category) => (
+                <motion.div
+                  key={category}
+                  variants={itemVariants}
+                  className="mb-16"
+                >
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                      {categoryEmoji[category] || "🍽️"}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 capitalize tracking-tight">
+                      {category}
+                    </h2>
+                    <div className="flex-1 h-px bg-gray-100"></div>
+                  </div>
+
+                  <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <AnimatePresence mode="popLayout">
+                      {grouped[category].map((item) => (
+                        <FoodItem key={item.id} item={item} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              ))
+          )}
+        </div>
+      </motion.section>
+    </div>
+  );
+};
+
+export default MenuList;

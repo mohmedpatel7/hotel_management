@@ -83,7 +83,7 @@ const LandingPage: React.FC = () => {
               className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
             >
               <button
-                onClick={() => router.push("/menu")}
+                onClick={() => router.push("/genralMenu")}
                 className="w-full sm:w-auto bg-orange-500 text-white px-10 py-5 rounded-3xl font-black text-lg shadow-xl shadow-orange-200 hover:bg-orange-600 hover:shadow-orange-300 transition-all duration-300 flex items-center justify-center gap-2 group"
               >
                 Explore Menu{" "}
