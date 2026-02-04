@@ -71,10 +71,10 @@ const itemVariants: Variants = {
 const MenuList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { foodItemsForWaiter, loading, error } = useSelector(
-    (state: RootState) => state.foodlist
+    (state: RootState) => state.foodlist,
   );
   const { loading: orderLoading } = useSelector(
-    (state: RootState) => state.order
+    (state: RootState) => state.order,
   );
   const { tables } = useSelector((state: RootState) => state.table);
 
@@ -89,6 +89,7 @@ const MenuList: React.FC = () => {
     foodName: string;
     halfPrice?: number;
     fullPrice: number;
+    category?: string;
   } | null>(null);
   const [selectedQuantity, setSelectedQuantity] = useState<
     "half" | "full" | ""
@@ -96,8 +97,9 @@ const MenuList: React.FC = () => {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [weaterId, setWeaterId] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "ok" | "redirect">(
-    "checking"
+    "checking",
   );
+  const [selectedCount, setSelectedCount] = useState<number>(1);
 
   const { showToast } = useToast();
   const router = useRouter();
@@ -149,21 +151,26 @@ const MenuList: React.FC = () => {
   }, [router, showToast]);
 
   const filteredItems = localFoodItems.filter((item) =>
-    item.foodName.toLowerCase().includes(searchQuery.toLowerCase())
+    item.foodName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const grouped = filteredItems.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, typeof filteredItems>);
+  const grouped = filteredItems.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof filteredItems>,
+  );
 
   const calculatePrice = () => {
     if (!selectedFoodItem || !selectedQuantity) return 0;
     if (selectedQuantity === "half") {
-      return selectedFoodItem.halfPrice || 0;
+      const base = selectedFoodItem.halfPrice || 0;
+      return base * selectedCount;
     } else if (selectedQuantity === "full") {
-      return selectedFoodItem.fullPrice || 0;
+      const base = selectedFoodItem.fullPrice || 0;
+      return base * selectedCount;
     }
     return 0;
   };
@@ -181,25 +188,36 @@ const MenuList: React.FC = () => {
     }
 
     try {
-      await dispatch(
-        createOrder({
-          foodId: selectedFoodItem._id,
-          quntity: selectedQuantity,
-          price: price,
-          weaterId: weaterId,
-          tableNo: parseInt(selectedTable),
-        })
-      ).unwrap();
+      const unitPrice =
+        selectedQuantity === "half"
+          ? selectedFoodItem.halfPrice || 0
+          : selectedFoodItem.fullPrice || 0;
+
+      // Batch multiple orders for roti/coldrinks using Promise.all
+      const tasks = Array.from({ length: selectedCount }).map(() =>
+        dispatch(
+          createOrder({
+            foodId: selectedFoodItem._id,
+            quntity: selectedQuantity,
+            price: unitPrice,
+            weaterId: weaterId,
+            tableNo: parseInt(selectedTable),
+          }),
+        ).unwrap(),
+      );
+
+      await Promise.all(tasks);
       showToast("Order placed successfully!", "success");
       setIsOrderModalOpen(false);
       setSelectedFoodItem(null);
       setSelectedQuantity("");
       setSelectedTable(null);
+      setSelectedCount(1);
     } catch (err: unknown) {
       showToast(
         (err as { message?: string }).message ||
           "Failed to place order. Please try again.",
-        "error"
+        "error",
       );
     }
   };
@@ -343,12 +361,14 @@ const MenuList: React.FC = () => {
                                   ? Number(item.halfPrice)
                                   : undefined,
                                 fullPrice: Number(item.fullPrice),
+                                category: item.category,
                               });
+                              setSelectedCount(1);
                               setIsOrderModalOpen(true);
                             } else {
                               showToast(
                                 "This item is currently unavailable",
-                                "error"
+                                "error",
                               );
                             }
                           }}
@@ -446,15 +466,18 @@ const MenuList: React.FC = () => {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.98, opacity: 0, y: 5 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden relative"
+              className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-orange-500 p-8 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 transform translate-x-4 -translate-y-4">
-                  <FaUtensils size={120} />
+              {/* Modal Header */}
+              <div className="bg-orange-500 p-4 sm:p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-10 rotate-12 transform translate-x-4 -translate-y-4">
+                  <FaUtensils className="w-20 h-20 sm:w-32 sm:h-32" />
                 </div>
                 <div className="relative z-10">
-                  <h3 className="text-3xl font-black mb-2">Place Order</h3>
+                  <h3 className="text-2xl sm:text-3xl font-black mb-2">
+                    Place Order
+                  </h3>
                   <p className="text-orange-100 font-medium opacity-90">
                     {selectedFoodItem.foodName}
                   </p>
@@ -464,29 +487,31 @@ const MenuList: React.FC = () => {
                     e.stopPropagation();
                     setIsOrderModalOpen(false);
                   }}
-                  className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                  className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 >
                   <FaTimes />
                 </button>
               </div>
 
-              <div className="p-8 space-y-6">
+              {/* Modal Content */}
+              <div className="p-4 sm:p-8 space-y-4 sm:space-y-6">
+                {/* Portion Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">
                     Select Portion
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {selectedFoodItem.halfPrice && (
                       <button
                         onClick={() => setSelectedQuantity("half")}
-                        className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left ${
                           selectedQuantity === "half"
                             ? "border-orange-500 bg-orange-50"
                             : "border-gray-100 hover:border-orange-200"
                         }`}
                       >
                         <p
-                          className={`text-sm font-bold ${
+                          className={`text-xs sm:text-sm font-bold ${
                             selectedQuantity === "half"
                               ? "text-orange-600"
                               : "text-gray-400"
@@ -495,7 +520,7 @@ const MenuList: React.FC = () => {
                           Half Portion
                         </p>
                         <p
-                          className={`text-xl font-black ${
+                          className={`text-lg sm:text-xl font-black ${
                             selectedQuantity === "half"
                               ? "text-orange-600"
                               : "text-gray-800"
@@ -507,14 +532,14 @@ const MenuList: React.FC = () => {
                     )}
                     <button
                       onClick={() => setSelectedQuantity("full")}
-                      className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                      className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left ${
                         selectedQuantity === "full"
                           ? "border-orange-500 bg-orange-50"
                           : "border-gray-100 hover:border-orange-200"
                       } ${!selectedFoodItem.halfPrice ? "col-span-2" : ""}`}
                     >
                       <p
-                        className={`text-sm font-bold ${
+                        className={`text-xs sm:text-sm font-bold ${
                           selectedQuantity === "full"
                             ? "text-orange-600"
                             : "text-gray-400"
@@ -523,7 +548,7 @@ const MenuList: React.FC = () => {
                         Full Portion
                       </p>
                       <p
-                        className={`text-xl font-black ${
+                        className={`text-lg sm:text-xl font-black ${
                           selectedQuantity === "full"
                             ? "text-orange-600"
                             : "text-gray-800"
@@ -535,11 +560,43 @@ const MenuList: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Quantity Selector for Roti and Coldrinks */}
+                {(selectedFoodItem.category === "roti" ||
+                  selectedFoodItem.category === "coldrinks") && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">
+                      Quantity
+                    </label>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <button
+                        onClick={() =>
+                          setSelectedCount(Math.max(1, selectedCount - 1))
+                        }
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border-2 border-orange-500 text-orange-600 font-bold text-lg sm:text-xl hover:bg-orange-50 transition-all"
+                      >
+                        −
+                      </button>
+                      <div className="flex-1 bg-orange-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-orange-200 text-center">
+                        <p className="text-xl sm:text-2xl font-black text-orange-600">
+                          {selectedCount}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedCount(selectedCount + 1)}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border-2 border-orange-500 text-orange-600 font-bold text-lg sm:text-xl hover:bg-orange-50 transition-all"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Table Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">
                     Assign Table
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 max-h-40 sm:max-h-48 overflow-y-auto p-1 custom-scrollbar">
                     {tables
                       ?.filter((table) => table.status === "booked")
                       .map((table) => (
@@ -548,7 +605,7 @@ const MenuList: React.FC = () => {
                           onClick={() =>
                             setSelectedTable(table.number.toString())
                           }
-                          className={`p-3 rounded-xl border-2 transition-all text-center ${
+                          className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all text-center ${
                             selectedTable === table.number.toString()
                               ? "border-orange-500 bg-orange-50 text-orange-600 shadow-sm"
                               : "border-gray-100 text-gray-400 hover:border-orange-200"
@@ -557,19 +614,40 @@ const MenuList: React.FC = () => {
                           <p className="text-xs font-bold uppercase tracking-tighter mb-0.5">
                             Table
                           </p>
-                          <p className="text-lg font-black">{table.number}</p>
+                          <p className="text-base sm:text-lg font-black">
+                            {table.number}
+                          </p>
                         </button>
                       ))}
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                {/* Total Price Display */}
+                <div className="bg-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-orange-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-gray-600 font-medium">Total Price</p>
+                    <p className="text-2xl sm:text-3xl font-black text-orange-600">
+                      ₹{calculatePrice()}
+                    </p>
+                  </div>
+                  {selectedCount > 1 && (
+                    <p className="text-sm text-gray-500">
+                      {selectedCount} x ₹
+                      {selectedQuantity === "half"
+                        ? selectedFoodItem.halfPrice
+                        : selectedFoodItem.fullPrice}
+                    </p>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 sm:gap-4 pt-3 sm:pt-4">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsOrderModalOpen(false);
                     }}
-                    className="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-95"
+                    className="flex-1 py-3 sm:py-4 bg-gray-100 text-gray-600 rounded-xl sm:rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-95 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
@@ -578,7 +656,7 @@ const MenuList: React.FC = () => {
                     disabled={
                       orderLoading || !selectedQuantity || !selectedTable
                     }
-                    className="flex-[2] bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                    className="flex-[2] bg-orange-500 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
                   >
                     {orderLoading ? (
                       <motion.div
@@ -588,10 +666,10 @@ const MenuList: React.FC = () => {
                           duration: 1,
                           ease: "linear",
                         }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full"
                       />
                     ) : (
-                      <FaCheckCircle />
+                      <FaCheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
                     {orderLoading ? "Placing..." : "Confirm Order"}
                   </button>
@@ -603,19 +681,37 @@ const MenuList: React.FC = () => {
       </AnimatePresence>
 
       <style jsx global>{`
+        /* Modern Scrollbar Styling for PC */
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
+          height: 8px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f9fafb;
-          border-radius: 10px;
+          background: #f1f5f9;
+          border-radius: 12px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e5e7eb;
-          border-radius: 10px;
+          background: #f97316;
+          border-radius: 12px;
+          border: 2px solid #f1f5f9;
+          transition: all 0.2s ease;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #d1d5db;
+          background: #ea580c;
+          transform: scale(1.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          background: #c2410c;
+        }
+
+        /* Firefox Scrollbar */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #f97316 #f1f5f9;
         }
       `}</style>
     </div>
