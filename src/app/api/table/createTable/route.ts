@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
 
     // Invalidate static cache when a new table is created
     await client.del("tables:static");
+
+    console.log(table);
 
     return NextResponse.json({
       message: "Table created successfully",
@@ -94,7 +96,7 @@ export async function GET() {
           success: false,
           tables: [],
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -134,7 +136,7 @@ export async function GET() {
         success: false,
         error: error,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
