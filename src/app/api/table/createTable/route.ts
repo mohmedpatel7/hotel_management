@@ -127,12 +127,12 @@ export async function GET() {
         : "mongodb",
     });
   } catch (error) {
-    console.error("GET /createTable error:", error);
     return NextResponse.json(
       {
         message: "Internal server error!",
         status: 500,
         success: false,
+        error,
       },
       { status: 500 },
     );
