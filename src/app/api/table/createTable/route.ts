@@ -57,8 +57,6 @@ export async function POST(req: NextRequest) {
     // Invalidate static cache when a new table is created
     await client.del("tables:static");
 
-    console.log(table);
-
     return NextResponse.json({
       message: "Table created successfully",
       table,
@@ -66,6 +64,7 @@ export async function POST(req: NextRequest) {
       success: true,
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json({
       message: "Internal server error !",
       error,
